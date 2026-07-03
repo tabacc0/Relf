@@ -5,3 +5,4 @@ pub mod section;
 pub mod symbol;
 pub mod relocation;
 pub mod program;
+pub mod error;

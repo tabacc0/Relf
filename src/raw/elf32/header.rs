@@ -1,4 +1,5 @@
 use crate::raw::elf32::types::*;
+use crate::raw::elf32::error::*;
 // values for e_type
 const ET_NONE : Elf32Half = Elf32Half{value:0};
 const ET_REL : Elf32Half = Elf32Half{value:1};//Relocatable file
@@ -77,6 +78,45 @@ pub struct Elf32Ehdr {
     //section associated with a string table
     //the string table has section names
     e_shstrndx : Elf32Half,
+}
+
+impl Elf32Ehdr {
+    pub fn from_bytes
+        (raw_bytes:&[u8;size_of::<Elf32Ehdr>()]) -> Result<Self,Error>
+    {
+        let mut e_ident : [u8;16] = [0;16];
+            e_ident.copy_from_slice(&raw_bytes[0..16]);
+        let e_type = Elf32Half::from_bytes(&raw_bytes[16..18]);
+        let e_machine = Elf32Half::from_bytes(&raw_bytes[18..20]);
+        let e_version = Elf32Word::from_bytes(&raw_bytes[20..24]);
+        let e_entry = Elf32Addr::from_bytes(&raw_bytes[24..28]);
+        let e_phoff = Elf32Off::from_bytes(&raw_bytes[28..32]);
+        let e_shoff = Elf32Off::from_bytes(&raw_bytes[32..36]);
+        let e_flags = Elf32Word::from_bytes(&raw_bytes[36..40]);
+        let e_ehsize = Elf32Half::from_bytes(&raw_bytes[40..42]);
+        let e_phentsize = Elf32Half::from_bytes(&raw_bytes[42..44]);
+        let e_phnum = Elf32Half::from_bytes(&raw_bytes[44..46]);
+        let e_shentsize = Elf32Half::from_bytes(&raw_bytes[46..48]);
+        let e_shnum = Elf32Half::from_bytes(&raw_bytes[48..50]);
+        let e_shstrndx = Elf32Half::from_bytes(&raw_bytes[50..52]);
+
+        Ok(Self{
+            e_ident : e_ident,
+            e_type : e_type?,
+            e_machine : e_machine?,
+            e_version : e_version?,
+            e_entry : e_entry?,
+            e_phoff : e_phoff?,
+            e_shoff : e_shoff?,
+            e_flags : e_flags?,
+            e_ehsize : e_ehsize?,
+            e_phentsize : e_phentsize?,
+            e_phnum : e_phnum?,
+            e_shentsize : e_shentsize?,
+            e_shnum : e_shnum?,
+            e_shstrndx : e_shstrndx?,
+        })
+    }
 }
 
 
