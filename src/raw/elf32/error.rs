@@ -7,6 +7,7 @@ pub enum Error {
     InvalidMagic,
     InvalidElfClass,
     InvalidElfEndian,
+    ByteParsingError,
 }
 
 impl fmt::Display for Error {
@@ -19,6 +20,7 @@ impl fmt::Display for Error {
             Self::InvalidMagic => write!(f,"InvalidMagic"),
             Self::InvalidElfClass => write!(f,"InvalidElfClass"),
             Self::InvalidElfEndian => write!(f,"InvalidElfEndian"),
+            Self::ByteParsingError => write!(f,"ByteParsingError"),
         }
     }
 }

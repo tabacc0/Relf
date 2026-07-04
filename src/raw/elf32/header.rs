@@ -141,12 +141,7 @@ impl Elf32Ehdr {
         }
 
         let e_type = match Elf32Half::from_bytes(&raw_bytes[16..18]){
-            Ok(value) => {
-                if !VALID_ET.contains(&value) {
-                    return Err(Error::InvalidFieldValue);
-                }
-                value
-            },
+            Ok(value) => value,
             Err(e) => {println!("error : {}",e);
                 return Err(Error::FieldBuildingError)
             },
