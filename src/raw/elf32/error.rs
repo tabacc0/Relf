@@ -8,6 +8,8 @@ pub enum Error {
     InvalidElfClass,
     InvalidElfEndian,
     ByteParsingError,
+    InvalidShEntSize,
+    InvalidPhEntSize,
 }
 
 impl fmt::Display for Error {
@@ -21,6 +23,8 @@ impl fmt::Display for Error {
             Self::InvalidElfClass => write!(f,"InvalidElfClass"),
             Self::InvalidElfEndian => write!(f,"InvalidElfEndian"),
             Self::ByteParsingError => write!(f,"ByteParsingError"),
+            Self::InvalidShEntSize => write!(f,"InvalidShEntSize"),
+            Self::InvalidPhEntSize => write!(f,"InvalidPhEntSize"),
         }
     }
 }

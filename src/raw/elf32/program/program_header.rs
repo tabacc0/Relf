@@ -19,6 +19,8 @@ const PT_PHDR : Elf32Word = Elf32Word{value:6};
 const PT_LOPROC : Elf32Word = Elf32Word{value:0x70000000};
 const PT_HIPROC : Elf32Word = Elf32Word{value:0x7fffffff};
 
+#[derive(Debug)]
+#[repr(C)]
 pub struct Elf32Phdr {
     p_type : Elf32Word,//type of segment , see above 
     //the offset from the begining of the file to the segment

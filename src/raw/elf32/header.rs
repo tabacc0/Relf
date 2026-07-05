@@ -1,5 +1,7 @@
 use crate::raw::elf32::types::*;
 use crate::raw::elf32::error::*;
+use crate::raw::elf32::section::section_header::*;
+use crate::raw::elf32::program::program_header::*;
 // values for e_type
 const ET_NONE : Elf32Half = Elf32Half{value:0};
 const ET_REL : Elf32Half = Elf32Half{value:1};//Relocatable file
@@ -89,13 +91,11 @@ const EI_NIDENT : u8 = 16;
 #[repr(C)]
 pub struct Elf32Ehdr {
     e_ident : [u8;16],//file identifier
-    /*
-     * k*/
     e_type : Elf32Half,//object file type
     e_machine : Elf32Half,//architecture
     e_version : Elf32Word,//ELF version
     e_entry : Elf32Addr,//entry point if executable, 0 if not
-                        //file offset of PROGRAM header table,0 if none
+    //file offset of PROGRAM header table,0 if none
     e_phoff : Elf32Off,
     //file offset of SECTION header table,0 if none
     e_shoff : Elf32Off,
@@ -199,7 +199,12 @@ impl Elf32Ehdr {
             }
         };
         let e_phentsize = match Elf32Half::from_bytes(&raw_bytes[42..44]){
-            Ok(value) => value,
+            Ok(value) => {
+                if u16::from(&value) as usize != size_of::<Elf32Phdr>(){
+                    return Err(Error::InvalidPhEntSize);
+                }
+                value
+            }
             Err(e) => {println!("error : {}",e);
                 return Err(Error::FieldBuildingError);
             }
@@ -211,7 +216,12 @@ impl Elf32Ehdr {
             }
         };
         let e_shentsize = match Elf32Half::from_bytes(&raw_bytes[46..48]){
-            Ok(value) => value,
+            Ok(value) => {
+                if u16::from(&value) as usize != size_of::<Elf32Shdr>(){
+                    return Err(Error::InvalidShEntSize);
+                }
+                value
+            }
             Err(e) => {println!("error : {}",e);
                 return Err(Error::FieldBuildingError);
             }
@@ -246,6 +256,28 @@ impl Elf32Ehdr {
             e_shstrndx : e_shstrndx,
         })
     }
+
+    pub fn section_header_offset(&self) -> Result<&Elf32Off,Error> {
+        Ok(&self.e_shoff)
+    } 
+    pub fn section_header_size(&self) -> Result<Elf32Word,Error> {
+        Ok(Elf32Word::from((u16::from(&self.e_shentsize)  * 
+                    u16::from(&self.e_shnum)) as u32))
+    } 
+    pub fn program_header_offset(&self) -> Result<&Elf32Off,Error> {
+        Ok(&self.e_phoff)
+    } 
+    pub fn program_header_size(&self) -> Result<Elf32Word,Error> {
+        Ok(Elf32Word::from((u16::from(&self.e_phentsize)  * 
+                    u16::from(&self.e_phnum)) as u32))
+    } 
+    pub fn e_shnum(&self) -> Result<&Elf32Half,Error> {
+        Ok(&self.e_shnum)
+    } 
+    pub fn e_phnum(&self) -> Result<&Elf32Half,Error> {
+        Ok(&self.e_phnum)
+    } 
+
 }
 
 

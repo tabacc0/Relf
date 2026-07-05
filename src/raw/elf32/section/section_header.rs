@@ -72,6 +72,8 @@ const SHF_MASKPROC : Elf32Word = Elf32Word{value:0xf0000000} ;
 //sh_type==SHT_SYMTAB || sh_type==SHT_DYNSYMTAB :OS specific 
 //
 // other values of sh_type : sh_info = 0
+#[derive(Debug)]
+#[repr(C)]
 pub struct Elf32Shdr {
     sh_name : Elf32Word,//index into section header string table
     sh_type : Elf32Word,//contents and semantics, see above
@@ -82,7 +84,7 @@ pub struct Elf32Shdr {
     sh_link : Elf32Word,//see above
     sh_info : Elf32Word,//section info see above
     sh_addralign : Elf32Word,//alignment , or 0
-                             //size of entries in section that are tables or 0
+    //size of entries in section that are tables or 0
     sh_entsize : Elf32Word,
 }
 

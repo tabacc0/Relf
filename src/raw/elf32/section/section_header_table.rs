@@ -25,11 +25,28 @@ const SHN_COMMON : Elf32Half = Elf32Half{value:0xfff2} ;
 //higher bound of reserved indexes
 const SHN_HIRESERVE : Elf32Half = Elf32Half{value:0xffff} ;
 use super::section_header::Elf32Shdr;
+#[derive(Debug)]
+#[repr(C)]
 pub struct Elf32Sht{
-    pub sht : Vec<Elf32Shdr>,
+    pub sht : Vec<Option<Elf32Shdr>>,
 }
+
 impl Elf32Sht{
-    pub fn get_sh(&self,idx:usize) -> &Elf32Shdr{
-        &self.sht[idx]
+    pub fn get_sh(&self,idx:usize) -> &Option<Elf32Shdr>{
+        match &self.sht[idx] {
+            Some(value) => &self.sht[idx],
+            None => &None,
+        }
+    }
+    pub fn set_sh(&mut self,sh:Option<Elf32Shdr>,idx:usize) {
+            self.sht[idx] = sh;
+    }
+    pub fn new(e_shnum :&Elf32Half) -> Self{
+        let e_shnum : usize = u16::from(e_shnum) as usize;
+        let mut sht : Vec<Option<Elf32Shdr>> =  Vec::new();
+        for i in 0..e_shnum {
+            sht.push(None);
+        } 
+        Self {sht}
     }
 }

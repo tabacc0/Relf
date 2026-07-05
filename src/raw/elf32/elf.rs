@@ -1,10 +1,15 @@
 use std::fs;
 use crate::raw::elf32::header::Elf32Ehdr;
+use crate::raw::elf32::section::section_header_table::*;
+use crate::raw::elf32::program::program_header_table::*;
 use crate::raw::elf32::error::*;
+
 #[derive(Debug)]
 pub struct Elf32 {
     pub raw_bytes : Vec<u8>,
     pub header : Elf32Ehdr,
+    pub sht : Elf32Sht ,
+    pub pht : Elf32Pht ,
 }
 
 impl Elf32 {
@@ -28,9 +33,12 @@ impl Elf32 {
                 return Err(Error::HeaderParsingError);
             }
         };
-        Ok(Self { raw_bytes, header })
+        let sht = Elf32Sht::new(header.e_shnum()?);
+        let pht = Elf32Pht::new(header.e_phnum()?);
+        Ok(Self { raw_bytes, header,sht ,pht})
 
     }
-    //pub fn from_file()
-    //fn sections(&self) -> ElfSections{}
+    
+    //pub fn section(&self,idx:usize) -> &Elf32Shdr
+
 }
