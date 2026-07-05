@@ -1,4 +1,4 @@
-
+use std::cell::OnceCell;
 use crate::raw::elf32::types::Elf32Half;
 
 //aside from normal indexing special indexes of this table
@@ -28,24 +28,18 @@ use super::section_header::Elf32Shdr;
 #[derive(Debug)]
 #[repr(C)]
 pub struct Elf32Sht{
-    pub sht : Vec<Option<Elf32Shdr>>,
+    pub sht : Vec<OnceCell<Elf32Shdr>>,
 }
 
 impl Elf32Sht{
-    pub fn get_sh(&self,idx:usize) -> &Option<Elf32Shdr>{
-        match &self.sht[idx] {
-            Some(value) => &self.sht[idx],
-            None => &None,
-        }
-    }
-    pub fn set_sh(&mut self,sh:Option<Elf32Shdr>,idx:usize) {
-            self.sht[idx] = sh;
+    pub fn get_sh(&self,idx:usize) -> &OnceCell<Elf32Shdr>{
+         &self.sht[idx]
     }
     pub fn new(e_shnum :&Elf32Half) -> Self{
         let e_shnum : usize = u16::from(e_shnum) as usize;
-        let mut sht : Vec<Option<Elf32Shdr>> =  Vec::new();
+        let mut sht : Vec<OnceCell<Elf32Shdr>> =  Vec::new();
         for i in 0..e_shnum {
-            sht.push(None);
+            sht.push(OnceCell::new());
         } 
         Self {sht}
     }

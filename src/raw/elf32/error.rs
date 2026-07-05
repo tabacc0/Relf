@@ -1,4 +1,5 @@
 use std::fmt;
+#[derive(Debug)]
 pub enum Error {
     FileReadError,
     HeaderParsingError,
@@ -10,6 +11,9 @@ pub enum Error {
     ByteParsingError,
     InvalidShEntSize,
     InvalidPhEntSize,
+    IndexOutOfBoundsError,
+    SectionHeaderConstructionError,
+    CalcOffsetError,
 }
 
 impl fmt::Display for Error {
@@ -25,6 +29,10 @@ impl fmt::Display for Error {
             Self::ByteParsingError => write!(f,"ByteParsingError"),
             Self::InvalidShEntSize => write!(f,"InvalidShEntSize"),
             Self::InvalidPhEntSize => write!(f,"InvalidPhEntSize"),
+            Self::IndexOutOfBoundsError => write!(f,"IndexOutOfBoundsError"),
+            Self::SectionHeaderConstructionError => 
+                write!(f,"SectionHeaderConstructionError"),
+            Self::CalcOffsetError => write!(f,"CalcOffsetError"),
         }
     }
 }

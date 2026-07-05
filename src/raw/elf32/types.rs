@@ -1,6 +1,7 @@
-
+use std::ops::Not;
+use std::ops::BitAnd;
 use crate::raw::elf32::error::*;
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
 #[repr(transparent)]
 pub struct Elf32Addr{pub value : u32,}
 
@@ -11,6 +12,20 @@ impl Elf32Addr {
             Err(e) => return Err(Error::ByteParsingError),
         };
         Ok(Self {value : u32::from_le_bytes(raw_bytes)})
+    }
+}
+
+impl Not for Elf32Addr{
+    type Output = Elf32Addr;
+    fn not(self) -> Self{
+        Self{value:!self.value}
+    }
+}
+
+impl BitAnd for Elf32Addr{
+    type Output = Elf32Addr;
+    fn bitand(self,other:Self) -> Self{
+        Self{value:(self.value & other.value)}
     }
 }
 
@@ -28,7 +43,7 @@ impl From<&Elf32Addr> for u32 {
 
 
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
 #[repr(transparent)]
 pub struct Elf32Half{pub value : u16,}
 
@@ -42,6 +57,19 @@ impl Elf32Half {
     }
 }
 
+impl Not for Elf32Half{
+    type Output = Elf32Half;
+    fn not(self) -> Self{
+        Self{value:!self.value}
+    }
+}
+
+impl BitAnd for Elf32Half{
+    type Output = Elf32Half;
+    fn bitand(self,other:Self) -> Self{
+        Self{value:(self.value & other.value)}
+    }
+}
 impl From<u16> for Elf32Half {
     fn from(v : u16) -> Self{
         Self{value:v}
@@ -56,7 +84,7 @@ impl From<&Elf32Half> for u16 {
 
 
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
 #[repr(transparent)]
 pub struct Elf32Off{pub value : u32,}
 
@@ -71,6 +99,20 @@ impl Elf32Off {
     }
 }
 
+
+impl Not for Elf32Off{
+    type Output = Elf32Off;
+    fn not(self) -> Self{
+        Self{value:!self.value}
+    }
+}
+
+impl BitAnd for Elf32Off{
+    type Output = Elf32Off;
+    fn bitand(self,other:Self) -> Self{
+        Self{value:(self.value & other.value)}
+    }
+}
 impl From<u32> for Elf32Off {
     fn from(v : u32) -> Self{
         Self{value:v}
@@ -85,7 +127,7 @@ impl From<&Elf32Off> for u32 {
 
 
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
 #[repr(transparent)]
 pub struct Elf32Sword{pub value : i32,}
 
@@ -100,6 +142,19 @@ impl Elf32Sword {
     }
 }
 
+impl Not for Elf32Sword{
+    type Output = Elf32Sword;
+    fn not(self) -> Self{
+        Self{value:!self.value}
+    }
+}
+
+impl BitAnd for Elf32Sword{
+    type Output = Elf32Sword;
+    fn bitand(self,other:Self) -> Self{
+        Self{value:(self.value & other.value)}
+    }
+}
 impl From<i32> for Elf32Sword {
     fn from(v : i32) -> Self{
         Self{value:v}
@@ -111,7 +166,7 @@ impl From<&Elf32Sword> for i32 {
         v.value
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
 #[repr(transparent)]
 pub struct Elf32Word{pub value : u32,}
 
@@ -126,6 +181,19 @@ impl Elf32Word {
     }
 }
 
+impl Not for Elf32Word{
+    type Output = Elf32Word;
+    fn not(self) -> Self{
+        Self{value:!self.value}
+    }
+}
+
+impl BitAnd for Elf32Word{
+    type Output = Elf32Word;
+    fn bitand(self,other:Self) -> Self{
+        Self{value:(self.value & other.value)}
+    }
+}
 impl From<u32> for Elf32Word {
     fn from(v : u32) -> Self{
         Self{value:v}

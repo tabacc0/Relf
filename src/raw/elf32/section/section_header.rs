@@ -1,4 +1,5 @@
 use crate::raw::elf32::types::*;
+use crate::raw::elf32::error::Error;
 
 //values of sh_type and their signification
 //
@@ -27,6 +28,21 @@ const SHT_REL : Elf32Word = Elf32Word{value:9} ;
 //this one is reseved but no meaning yet
 const SHT_SHLIB : Elf32Word = Elf32Word{value:10} ;
 
+const VALID_SHT : &[Elf32Word] = &[
+    SHT_NULL,
+    SHT_PROGBITS,
+    SHT_SYMTAB,
+    SHT_DYNSYM,
+    SHT_STRTAB,
+    SHT_RELA,
+    SHT_HASH,
+    SHT_DYNAMIC,
+    SHT_NOTE,
+    SHT_NOBITS ,
+    SHT_REL ,
+    SHT_SHLIB ,
+];
+
 //these two specify a range reserved for processor specific semantics
 const SHT_LOPROC : Elf32Word = Elf32Word{value:0x70000000} ;
 const SHT_HIPROC : Elf32Word = Elf32Word{value:0x7fffffff} ;
@@ -47,6 +63,11 @@ const SHF_EXECINSTR : Elf32Word = Elf32Word{value:4} ;
 //all bits reserved for processor specific flags
 const SHF_MASKPROC : Elf32Word = Elf32Word{value:0xf0000000} ;
 
+const VALID_SHF : &[Elf32Word] = &[
+    SHF_WRITE,
+    SHF_ALLOC,
+    SHF_EXECINSTR,
+];
 
 //values for sh_link and their signification depending on sh_type
 //
@@ -87,5 +108,84 @@ pub struct Elf32Shdr {
     //size of entries in section that are tables or 0
     sh_entsize : Elf32Word,
 }
+impl Elf32Shdr {
+    pub fn from_bytes(raw_bytes:&[u8;size_of::<Self>()]) -> Result<Self,Error>
+    {
+        let sh_name = match Elf32Word::from_bytes(&raw_bytes[0..4]){
+            Ok(value) => value,
+            Err(e) => return Err(Error::FieldBuildingError),
+        };
 
+        let sh_type = match Elf32Word::from_bytes(&raw_bytes[4..8]){
+            Ok(value) => {
+                if !VALID_SHT.contains(&value) && 
+                    (value < SHT_LOPROC || value > SHT_HIUSER)
+                {
+                    return Err(Error::InvalidFieldValue);
+                }
+                value
+            },
+            Err(e) => return Err(Error::FieldBuildingError),
+        };
+
+        let sh_flag = match Elf32Word::from_bytes(&raw_bytes[8..12]){
+            Ok(value) => value,
+            Err(e) => return Err(Error::FieldBuildingError),
+        };
+
+        let sh_addr = match Elf32Addr::from_bytes(&raw_bytes[12..16]){
+            Ok(value) => value ,
+            Err(e) => return Err(Error::FieldBuildingError),
+        };
+
+        let sh_offset = match Elf32Off::from_bytes(&raw_bytes[16..20]){
+            Ok(value) => value ,
+            Err(e) => return Err(Error::FieldBuildingError),
+        };
+
+        let sh_size = match Elf32Word::from_bytes(&raw_bytes[20..24]){
+            Ok(value) => value ,
+            Err(e) => return Err(Error::FieldBuildingError),
+        };
+
+        let sh_link = match Elf32Word::from_bytes(&raw_bytes[24..28]){
+            Ok(value) => value ,
+            Err(e) => return Err(Error::FieldBuildingError),
+        };
+
+        let sh_info = match Elf32Word::from_bytes(&raw_bytes[28..32]){
+            Ok(value) => value ,
+            Err(e) => return Err(Error::FieldBuildingError),
+        };
+
+        let sh_addralign = match Elf32Word::from_bytes(&raw_bytes[32..36]){
+            Ok(value) => {
+                //making sure alignment is sane
+                if u32::from(&value) != 1 && u32::from(&value) % 2 != 0{//
+                    return Err(Error::InvalidFieldValue);
+                }
+                value
+            }
+            Err(e) => return Err(Error::FieldBuildingError),
+        };
+        let sh_entsize = match Elf32Word::from_bytes(&raw_bytes[36..40]){
+            Ok(value) => value,
+            Err(e) => return Err(Error::FieldBuildingError),
+        };
+
+        Ok(Self {
+            sh_name ,
+            sh_type , 
+            sh_flag , 
+            sh_addr , 
+            sh_offset,
+            sh_size , 
+            sh_link , 
+            sh_info , 
+            sh_addralign,
+            sh_entsize,
+        })
+    }
+
+}
 

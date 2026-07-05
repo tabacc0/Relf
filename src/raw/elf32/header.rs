@@ -153,7 +153,8 @@ impl Elf32Ehdr {
                 }
                 value
             },
-            Err(e) => {println!("error : {}",e);
+            Err(e) => {
+                println!("error : {}",e);
                 return Err(Error::FieldBuildingError);
             }
         };
@@ -277,8 +278,12 @@ impl Elf32Ehdr {
     pub fn e_phnum(&self) -> Result<&Elf32Half,Error> {
         Ok(&self.e_phnum)
     } 
+    pub fn e_shentsize(&self) -> Result<&Elf32Half,Error> {
+        Ok(&self.e_shentsize)
+    } 
+    pub fn e_phentsize(&self) -> Result<&Elf32Half,Error> {
+        Ok(&self.e_phentsize)
+    } 
 
 }
-
-
 
