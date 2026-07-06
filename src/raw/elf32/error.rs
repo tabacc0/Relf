@@ -13,7 +13,17 @@ pub enum Error {
     InvalidPhEntSize,
     IndexOutOfBoundsError,
     SectionHeaderConstructionError,
+    ProgramHeaderConstructionError,
     CalcOffsetError,
+    SectionHeaderRetrievalError,
+    InvalidSegmentMemSz,
+    NotTable,
+    SymbolConstructionError,
+    NotSymbolTable,
+    NotRelTable,
+    NotRelaTable,
+    RelConstructionError,
+    RelaConstructionError,
 }
 
 impl fmt::Display for Error {
@@ -29,10 +39,33 @@ impl fmt::Display for Error {
             Self::ByteParsingError => write!(f,"ByteParsingError"),
             Self::InvalidShEntSize => write!(f,"InvalidShEntSize"),
             Self::InvalidPhEntSize => write!(f,"InvalidPhEntSize"),
-            Self::IndexOutOfBoundsError => write!(f,"IndexOutOfBoundsError"),
+            Self::IndexOutOfBoundsError => 
+                write!(f,"IndexOutOfBoundsError"),
+
             Self::SectionHeaderConstructionError => 
                 write!(f,"SectionHeaderConstructionError"),
+
             Self::CalcOffsetError => write!(f,"CalcOffsetError"),
+
+            Self::SectionHeaderRetrievalError => 
+                write!(f,"SectionHeaderRetrievalError"),
+
+            Self::InvalidSegmentMemSz => write!(f,"InvalidSegmentMemSz"),
+
+            Self::ProgramHeaderConstructionError => 
+                write!(f,"ProgramHeaderConstructionError"),
+            Self::NotTable => write!(f,"NotTable"),
+
+            Self::SymbolConstructionError => 
+                write!(f,"SymbolConstructionError"),
+
+            Self::NotSymbolTable => write!(f,"NotSymbolTable"),
+            Self::NotRelTable => write!(f,"NotRelTable"),
+            Self::NotRelaTable => write!(f,"NotRelaTable"),
+            Self::RelConstructionError => 
+                write!(f,"RelConstructionError"),
+            Self::RelaConstructionError => 
+                write!(f,"RelaConstructionError"),
         }
     }
 }

@@ -1,5 +1,12 @@
+use crate::raw::elf32::error::Error;
 use crate::raw::elf32::types::*;
 
+
+//values of p_type and their interpretation
+//all these values are optional by the spec
+//a section program header may contain only fields that are relevant to it
+//
+//
 //unused/invalid array member , to be ignored
 const PT_NULL : Elf32Word = Elf32Word{value:0};
 //loadable segment, the bytes from the file are put into memory
@@ -15,9 +22,33 @@ const PT_NOTE : Elf32Word = Elf32Word{value:4};
 const PT_SHLIB : Elf32Word = Elf32Word{value:5};
 //entry holding the location and size of the ph table itself
 const PT_PHDR : Elf32Word = Elf32Word{value:6};
-//these two define the bound of values reserved for cpu-specific semantics
+//these two define the bounds of the range reserved for cpu-specific semantics
 const PT_LOPROC : Elf32Word = Elf32Word{value:0x70000000};
 const PT_HIPROC : Elf32Word = Elf32Word{value:0x7fffffff};
+
+
+const VALID_PT : &[Elf32Word] = &[
+    PT_NULL,
+    PT_LOAD,
+    PT_DYNAMIC,
+    PT_INTERP,
+    PT_NOTE,
+    PT_SHLIB,
+    PT_PHDR,
+];
+
+
+//masks of p_flags and their interpretation
+//
+//
+const PF_X : Elf32Word = Elf32Word{value:1};//this segment is executable
+const PF_W : Elf32Word = Elf32Word{value:2};//writable at runtime
+const PF_R : Elf32Word = Elf32Word{value:4};//readable at runtime
+//mask bit for os-specific semantics
+const PF_MASKOS : Elf32Word = Elf32Word{value:0x0ff00000};
+//mask bit for cpu-specific semantics
+const PF_MASKPROC : Elf32Word = Elf32Word{value:0xf0000000};
+
 
 #[derive(Debug)]
 #[repr(C)]
@@ -39,4 +70,80 @@ pub struct Elf32Phdr {
     p_flags : Elf32Word,
     //segment alignment , a muliple of two or (0 or 1) for no alignment reqs
     p_align : Elf32Word,
+}
+
+impl Elf32Phdr {
+    pub fn from_bytes(raw_bytes : &[u8;size_of::<Elf32Phdr>()]) 
+        -> Result<Self,Error> {
+
+        let p_type = match Elf32Word::from_bytes(&raw_bytes[0..4]){
+            Ok(value) => {
+                if !VALID_PT.contains(&value) && 
+                    (value < PT_LOPROC || value > PT_HIPROC)
+                {
+                    return Err(Error::InvalidFieldValue);
+                }
+                value
+            },
+            Err(e) => return Err(Error::FieldBuildingError),
+        };
+
+        let p_offset = match Elf32Off::from_bytes(&raw_bytes[4..8]){
+            Ok(value) => value,
+            Err(e) => return Err(Error::FieldBuildingError),
+        };
+
+        let p_vaddr = match Elf32Addr::from_bytes(&raw_bytes[8..12]){
+            Ok(value) => value,
+            Err(e) => return Err(Error::FieldBuildingError),
+        };
+
+        let p_paddr = match Elf32Addr::from_bytes(&raw_bytes[12..16]){
+            Ok(value) => value,
+            Err(e) => return Err(Error::FieldBuildingError),
+        };
+
+        let p_filesz = match Elf32Word::from_bytes(&raw_bytes[16..20]){
+            Ok(value) => value,
+            Err(e) => return Err(Error::FieldBuildingError),
+        };
+
+        let p_memsz = match Elf32Word::from_bytes(&raw_bytes[20..24]){
+            Ok(value) => {
+                if value < p_filesz {
+                    return Err(Error::InvalidSegmentMemSz);
+                }
+                value
+            },
+            Err(e) => return Err(Error::FieldBuildingError),
+        };
+
+        let p_flags = match Elf32Word::from_bytes(&raw_bytes[24..28]){
+            Ok(value) => value,
+            Err(e) => return Err(Error::FieldBuildingError),
+        };
+
+        let p_align = match Elf32Word::from_bytes(&raw_bytes[28..32]){
+            Ok(value) => {
+                //making sure alignment is sane
+                if u32::from(&value) != 1 && u32::from(&value) % 2 != 0{//
+                    return Err(Error::InvalidFieldValue);
+                }
+                value
+            }
+            Err(e) => return Err(Error::FieldBuildingError),
+        };
+
+
+        Ok(Self {
+            p_type , 
+            p_offset , 
+            p_vaddr , 
+            p_paddr,
+            p_filesz , 
+            p_memsz , 
+            p_flags , 
+            p_align,
+        })
+    }
 }

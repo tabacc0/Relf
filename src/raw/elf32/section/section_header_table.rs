@@ -1,3 +1,4 @@
+use crate::raw::elf32::error::Error;
 use std::cell::OnceCell;
 use crate::raw::elf32::types::Elf32Half;
 
@@ -28,12 +29,16 @@ use super::section_header::Elf32Shdr;
 #[derive(Debug)]
 #[repr(C)]
 pub struct Elf32Sht{
-    pub sht : Vec<OnceCell<Elf32Shdr>>,
+    sht : Vec<OnceCell<Elf32Shdr>>,
+    e_shnum : usize,
 }
 
 impl Elf32Sht{
-    pub fn get_sh(&self,idx:usize) -> &OnceCell<Elf32Shdr>{
-         &self.sht[idx]
+    pub fn get_sh(&self,idx:usize) -> Result<&OnceCell<Elf32Shdr>,Error>{
+        if idx > (self.e_shnum - 1) {
+            return Err(Error::IndexOutOfBoundsError);
+        }
+         Ok(&self.sht[idx])
     }
     pub fn new(e_shnum :&Elf32Half) -> Self{
         let e_shnum : usize = u16::from(e_shnum) as usize;
@@ -41,6 +46,6 @@ impl Elf32Sht{
         for i in 0..e_shnum {
             sht.push(OnceCell::new());
         } 
-        Self {sht}
+        Self {sht,e_shnum}
     }
 }

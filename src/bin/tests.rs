@@ -4,13 +4,24 @@ fn main(){
         Ok(f) =>f,
         Err(_) => return (),
     };
-    let test_section = match elf_file.section_header(3) {
+    let mut i : usize = 0;
+    let mut test_section = match elf_file.section(i) {
         Ok(value) => value,
         Err(_) => return (),
     };
-    let test_section2 = match elf_file.section_header(3) {
+    while !test_section.is_symtab(){
+        i = i+1;
+        test_section = match elf_file.section(i) {
+            Ok(value) =>  value,
+            Err(e) => continue,
+        };
+    }
+
+
+    let test_symbol = match test_section.symbol(3) {
         Ok(value) => value,
         Err(_) => return (),
     };
-    println!("{:#?}",test_section);
+
+    println!("{:#?}",test_symbol);
 }

@@ -1,3 +1,4 @@
+use crate::raw::elf32::error::Error;
 use crate::raw::elf32::types::*;
 
 
@@ -15,6 +16,7 @@ use crate::raw::elf32::types::*;
  * of the relocation , the behavior here is processor specific
  * */
 
+#[derive(Debug)]
 pub struct Elf32Rel {
 //location where the relocation applies
 //it is an offset in object files and 
@@ -24,6 +26,7 @@ pub struct Elf32Rel {
     r_info : Elf32Word,
 //the addent here is impicit , stored in the location to be modified
 }
+#[derive(Debug)]
 pub struct Elf32Rela {
     //same
     r_offset : Elf32Off,
@@ -31,4 +34,76 @@ pub struct Elf32Rela {
     r_info : Elf32Word,
     //a constant value used to compute relocated value
     r_addend : Elf32Sword,
+}
+
+impl Elf32Rel {
+    pub fn from_bytes(raw_bytes : &[u8;size_of::<Elf32Rel>()])
+        -> Result<Self,Error> 
+    {
+        let r_offset = match Elf32Off::from_bytes(&raw_bytes[0..4]){
+            Ok(value) => value,
+            Err(_) => return Err(Error::FieldBuildingError),
+        };
+        let r_info = match Elf32Word::from_bytes(&raw_bytes[4..8]){
+            Ok(value) => value,
+            Err(_) => return Err(Error::FieldBuildingError),
+        };
+        Ok(Self{r_offset,r_info})
+    }
+    pub fn r_offset(&self) -> &Elf32Off {
+        &self.r_offset
+    }
+    pub fn r_info(&self) -> &Elf32Word {
+        &self.r_info
+    }
+    pub fn relocated_symbol_idx(&self) -> usize {
+        let r_info = u32::from(&self.r_info);
+        let r_sym = (r_info >> 8) as usize;
+        r_sym
+    }
+    pub fn rel_type(&self) -> usize {
+        let r_info = u32::from(&self.r_info);
+        let r_type = (r_info & 0xff) as usize;
+        r_type
+    }
+}
+
+impl Elf32Rela {
+    pub fn from_bytes(raw_bytes : &[u8;size_of::<Elf32Rela>()])
+        -> Result<Self,Error> 
+    {
+        let r_offset = match Elf32Off::from_bytes(&raw_bytes[0..4]){
+            Ok(value) => value,
+            Err(_) => return Err(Error::FieldBuildingError),
+        };
+        let r_info = match Elf32Word::from_bytes(&raw_bytes[4..8]){
+            Ok(value) => value,
+            Err(_) => return Err(Error::FieldBuildingError),
+        };
+        let r_addend = match Elf32Sword::from_bytes(&raw_bytes[8..12]){
+            Ok(value) => value,
+            Err(_) => return Err(Error::FieldBuildingError),
+        };
+        Ok(Self{r_offset,r_info,r_addend})
+    }
+
+    pub fn r_offset(&self) -> &Elf32Off {
+        &self.r_offset
+    }
+    pub fn r_info(&self) -> &Elf32Word {
+        &self.r_info
+    }
+    pub fn r_addend(&self) -> &Elf32Sword {
+        &self.r_addend
+    }
+    pub fn relocated_symbol_idx(&self) -> usize {
+        let r_info = u32::from(&self.r_info);
+        let r_sym = (r_info >> 8) as usize;
+        r_sym
+    }
+    pub fn rel_type(&self) -> usize {
+        let r_info = u32::from(&self.r_info);
+        let r_type = (r_info & 0xff) as usize;
+        r_type
+    }
 }

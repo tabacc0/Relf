@@ -1,3 +1,4 @@
+use crate::raw::elf32::error::Error;
 use crate::raw::elf32::types::*;
 
 /*content of st_value depending on object type :
@@ -15,8 +16,8 @@ use crate::raw::elf32::types::*;
 /*interpretation of the contents of st_info : 
  * as defined in the ELF spec :
  *      #define ELF32_ST_BIND(i) ((i)>>4)
-        #define ELF32_ST_TYPE(i) ((i)&0xf)
-        #define ELF32_ST_INFO(b,t) (((b)<<4)+((t)&0xf))
+ #define ELF32_ST_TYPE(i) ((i)&0xf)
+ #define ELF32_ST_INFO(b,t) (((b)<<4)+((t)&0xf))
  * the higher 4 bits of st_info hold ELF32_ST_BIND
  * the lower 4 bits of st_info hold ELF32_ST_TYPE
  * see below for definition and interpretation of values these can hold
@@ -24,55 +25,96 @@ use crate::raw::elf32::types::*;
 
 
 /*values of ELF32_ST_BIND and their interpretation
-keep in mind each of these is in practice 4 bits long
-using u8 here for convenience: 
-*/
+  keep in mind each of these is in practice 4 bits long
+  using u8 here for convenience: 
+  */
 
 //the scope of the symbol is local to the object file containing it
 //not visible globally
 //other objects may define local symbols with same name without conflict
-    const STB_LOCAL:u8 = 0;
+const STB_LOCAL:u8 = 0;
 //the scope of this symbol is global and thus visible to all object files
 //can satisfy undefined references in any of the files
-    const STB_GLOBAL:u8 = 1;
+const STB_GLOBAL:u8 = 1;
 //same as STB_GLOBAL but has a lesser precedence
-    const STB_WEAK:u8 = 2;
+const STB_WEAK:u8 = 2;
 //these to designate the range reserved for processor-specific semantics
-    const STB_LOPROC:u8 = 13;
-    const STB_HIPROC:u8 = 15;
+const STB_LOPROC:u8 = 13;
+const STB_HIPROC:u8 = 15;
 
 
 
 /*values of ELF32_ST_TYPE and their interpretation
-keep in mind each of these is in practice 4 bits long
-using u8 here for convenience: 
-*/
+  keep in mind each of these is in practice 4 bits long
+  using u8 here for convenience: 
+  */
 
 
-    const STT_NOTYPE:u8 = 0;//no specified type
-    const STT_OBJECT:u8 = 1;//a data object (array,var,struct,...)
-    const STT_FUNC:u8 = 2;//a function or executable code
-    const STT_SECTION:u8 = 3;//associated with a section , used for relocation
+const STT_NOTYPE:u8 = 0;//no specified type
+const STT_OBJECT:u8 = 1;//a data object (array,var,struct,...)
+const STT_FUNC:u8 = 2;//a function or executable code
+const STT_SECTION:u8 = 3;//associated with a section , used for relocation
 //has STB_LOCAL binding , it's section index is SHN_ABS as in it has an
 //absolute value and is not affected by relocation 
 //(see section_header_table.rs)
 //it precedes other symbols with STB_LOCAL
-    const STT_FILE:u8 = 4;
+const STT_FILE:u8 = 4;
 //these to designate the range reserved for processor-specific semantics
-    const STT_LOPROC:u8 = 13;
-    const STT_HIPROC:u8 = 15;
+const STT_LOPROC:u8 = 13;
+const STT_HIPROC:u8 = 15;
+#[derive(Debug)]
 pub struct Elf32Sym {
     st_name:Elf32Word,//index into the object's string table
-    //depending on the symbol this may be an address or absolute value(above)
+//depending on the symbol this may be an address or absolute value(above)
     st_value:Elf32Addr,
-    //size of the symbol (ie. some data structure), 0 if no size or unknown
+//size of the symbol (ie. some data structure), 0 if no size or unknown
     st_size:Elf32Word,
-    //specifies the symbol types and binding attribute , details above
+//specifies the symbol types and binding attribute , details above
     st_info:u8,
-    //hold 0 , no meaning assigned yet
+//hold 0 , no meaning assigned yet
     st_other:u8,
-    //index of the section to which the symbol entry relates
-    //or an index with special meaning see section_header_table.rs for details
+//index of the section header of the section to which
+//the symbol entry relates
+//or an index with special meaning see section_header_table.rs for details
     st_shndx:Elf32Half,
+}
+
+impl Elf32Sym {
+    pub fn from_bytes(raw_bytes : &[u8;size_of::<Elf32Sym>()]) 
+        -> Result<Self,Error>{
+
+            let st_name = match Elf32Word::from_bytes(&raw_bytes[0..4]){
+                Ok(value) => value,
+                Err(_) => return Err(Error::FieldBuildingError),
+            };
+
+            let st_value = match Elf32Addr::from_bytes(&raw_bytes[4..8]){
+                Ok(value) => value,
+                Err(_) => return Err(Error::FieldBuildingError),
+            };
+
+            let st_size = match Elf32Word::from_bytes(&raw_bytes[8..12]){
+                Ok(value) => value,
+                Err(_) => return Err(Error::FieldBuildingError),
+            };
+            
+            let st_info = raw_bytes[12];
+            let st_other = raw_bytes[13];
+
+            let st_shndx = match Elf32Half::from_bytes(&raw_bytes[14..16]){
+                Ok(value) => value,
+                Err(_) => return Err(Error::FieldBuildingError),
+            };
+
+            Ok (Self{
+                st_name,
+                st_value,
+                st_size,
+                st_info,
+                st_other,
+                st_shndx,
+            })
+
+    }
 
 }

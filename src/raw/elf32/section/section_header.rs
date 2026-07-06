@@ -4,31 +4,31 @@ use crate::raw::elf32::error::Error;
 //values of sh_type and their signification
 //
 //marks the header as inactive , no associated section
-const SHT_NULL : Elf32Word = Elf32Word{value:0} ;
+pub const SHT_NULL : Elf32Word = Elf32Word{value:0} ;
 //the corresponding section is custom and used by the program
-const SHT_PROGBITS : Elf32Word = Elf32Word{value:1} ;
+pub const SHT_PROGBITS : Elf32Word = Elf32Word{value:1} ;
 //the section is a SYMBOL table
-const SHT_SYMTAB : Elf32Word = Elf32Word{value:2} ;
+pub const SHT_SYMTAB : Elf32Word = Elf32Word{value:2} ;
 //section is a SYMBOL table
-const SHT_DYNSYM : Elf32Word = Elf32Word{value:11} ;
+pub const SHT_DYNSYM : Elf32Word = Elf32Word{value:11} ;
 //the section is a STRING table
-const SHT_STRTAB : Elf32Word = Elf32Word{value:3} ;
+pub const SHT_STRTAB : Elf32Word = Elf32Word{value:3} ;
 //section has relocation entries with addends
-const SHT_RELA : Elf32Word = Elf32Word{value:4} ;
+pub const SHT_RELA : Elf32Word = Elf32Word{value:4} ;
 //section is a symbol hash table
-const SHT_HASH : Elf32Word = Elf32Word{value:5} ;
+pub const SHT_HASH : Elf32Word = Elf32Word{value:5} ;
 //section has information for dynamic linkning
-const SHT_DYNAMIC : Elf32Word = Elf32Word{value:6} ;
+pub const SHT_DYNAMIC : Elf32Word = Elf32Word{value:6} ;
 //section holds data that marks the file
-const SHT_NOTE : Elf32Word = Elf32Word{value:7} ;
+pub const SHT_NOTE : Elf32Word = Elf32Word{value:7} ;
 //section occupies no space sh_size=0
-const SHT_NOBITS : Elf32Word = Elf32Word{value:8} ;
+pub const SHT_NOBITS : Elf32Word = Elf32Word{value:8} ;
 //section has relocation entries without addends
-const SHT_REL : Elf32Word = Elf32Word{value:9} ;
+pub const SHT_REL : Elf32Word = Elf32Word{value:9} ;
 //this one is reseved but no meaning yet
-const SHT_SHLIB : Elf32Word = Elf32Word{value:10} ;
+pub const SHT_SHLIB : Elf32Word = Elf32Word{value:10} ;
 
-const VALID_SHT : &[Elf32Word] = &[
+pub const VALID_SHT : &[Elf32Word] = &[
     SHT_NULL,
     SHT_PROGBITS,
     SHT_SYMTAB,
@@ -44,30 +44,25 @@ const VALID_SHT : &[Elf32Word] = &[
 ];
 
 //these two specify a range reserved for processor specific semantics
-const SHT_LOPROC : Elf32Word = Elf32Word{value:0x70000000} ;
-const SHT_HIPROC : Elf32Word = Elf32Word{value:0x7fffffff} ;
+pub const SHT_LOPROC : Elf32Word = Elf32Word{value:0x70000000} ;
+pub const SHT_HIPROC : Elf32Word = Elf32Word{value:0x7fffffff} ;
 //these two specify a range reserved for applications to use
-const SHT_LOUSER : Elf32Word = Elf32Word{value:0x80000000} ;
-const SHT_HIUSER : Elf32Word = Elf32Word{value:0xffffffff} ;
+pub const SHT_LOUSER : Elf32Word = Elf32Word{value:0x80000000} ;
+pub const SHT_HIUSER : Elf32Word = Elf32Word{value:0xffffffff} ;
 
 
 
 //values for sh_flag and their signification
 //
 //section has data that should be writable during execution
-const SHF_WRITE : Elf32Word = Elf32Word{value:1} ;
-//section occupies during execution, off for control sections
-const SHF_ALLOC : Elf32Word = Elf32Word{value:2} ;
+pub const SHF_WRITE : Elf32Word = Elf32Word{value:1} ;//0b1
+//section occupies memory during execution, off for control sections
+pub const SHF_ALLOC : Elf32Word = Elf32Word{value:2} ;//0b10
 //section has executable machine instructions
-const SHF_EXECINSTR : Elf32Word = Elf32Word{value:4} ;
+pub const SHF_EXECINSTR : Elf32Word = Elf32Word{value:4} ;//0b100
 //all bits reserved for processor specific flags
-const SHF_MASKPROC : Elf32Word = Elf32Word{value:0xf0000000} ;
+pub const SHF_MASKPROC : Elf32Word = Elf32Word{value:0xf0000000};//leftmost 4 bits
 
-const VALID_SHF : &[Elf32Word] = &[
-    SHF_WRITE,
-    SHF_ALLOC,
-    SHF_EXECINSTR,
-];
 
 //values for sh_link and their signification depending on sh_type
 //
@@ -108,6 +103,8 @@ pub struct Elf32Shdr {
     //size of entries in section that are tables or 0
     sh_entsize : Elf32Word,
 }
+
+
 impl Elf32Shdr {
     pub fn from_bytes(raw_bytes:&[u8;size_of::<Self>()]) -> Result<Self,Error>
     {
@@ -119,7 +116,7 @@ impl Elf32Shdr {
         let sh_type = match Elf32Word::from_bytes(&raw_bytes[4..8]){
             Ok(value) => {
                 if !VALID_SHT.contains(&value) && 
-                    (value < SHT_LOPROC || value > SHT_HIUSER)
+                    (value < SHT_LOPROC && value > SHT_HIUSER)
                 {
                     return Err(Error::InvalidFieldValue);
                 }
@@ -161,7 +158,7 @@ impl Elf32Shdr {
         let sh_addralign = match Elf32Word::from_bytes(&raw_bytes[32..36]){
             Ok(value) => {
                 //making sure alignment is sane
-                if u32::from(&value) != 1 && u32::from(&value) % 2 != 0{//
+                if u32::from(&value) != 1 && u32::from(&value) % 2 != 0{
                     return Err(Error::InvalidFieldValue);
                 }
                 value
@@ -187,5 +184,39 @@ impl Elf32Shdr {
         })
     }
 
+    //reference access to fields , use only if needed
+    pub fn section_name_idx(&self) -> &Elf32Word{
+        &self.sh_name
+    }
+    pub fn section_type(&self) -> &Elf32Word{
+        &self.sh_type
+    }
+    pub fn section_flag(&self) -> &Elf32Word{
+        &self.sh_flag
+    }
+    pub fn section_addr(&self) -> &Elf32Addr{
+        &self.sh_addr
+    }
+    pub fn section_offset(&self) -> &Elf32Off{
+        &self.sh_offset
+    }
+    pub fn section_size(&self) -> &Elf32Word{
+        &self.sh_size
+    }
+    pub fn section_link(&self) -> &Elf32Word{
+        &self.sh_link
+    }
+    pub fn section_info(&self) -> &Elf32Word{
+        &self.sh_info
+    }
+    pub fn section_alignment(&self) -> &Elf32Word{
+        &self.sh_addralign
+    }
+    pub fn section_entry_size(&self) -> Result<&Elf32Word,Error>{
+        if u32::from(&self.sh_entsize) == 0 {
+            return Err(Error::NotTable);
+        }
+        Ok(&self.sh_entsize)
+    }
 }
 
