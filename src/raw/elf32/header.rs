@@ -258,31 +258,55 @@ impl Elf32Ehdr {
         })
     }
 
-    pub fn section_header_offset(&self) -> Result<&Elf32Off,Error> {
-        Ok(&self.e_shoff)
+    pub fn e_ident(&self) -> &[u8] {
+        &self.e_ident
     } 
-    pub fn section_header_size(&self) -> Result<Elf32Word,Error> {
-        Ok(Elf32Word::from((u16::from(&self.e_shentsize)  * 
-                    u16::from(&self.e_shnum)) as u32))
+    pub fn e_type(&self) -> &Elf32Half {
+        &self.e_type
     } 
-    pub fn program_header_offset(&self) -> Result<&Elf32Off,Error> {
-        Ok(&self.e_phoff)
+    pub fn e_machine(&self) -> &Elf32Half {
+        &self.e_machine
     } 
-    pub fn program_header_size(&self) -> Result<Elf32Word,Error> {
-        Ok(Elf32Word::from((u16::from(&self.e_phentsize)  * 
-                    u16::from(&self.e_phnum)) as u32))
+    pub fn e_version(&self) -> &Elf32Word {
+        &self.e_version
     } 
-    pub fn e_shnum(&self) -> Result<&Elf32Half,Error> {
-        Ok(&self.e_shnum)
+    pub fn e_entry(&self) -> &Elf32Addr {
+        &self.e_entry
     } 
-    pub fn e_phnum(&self) -> Result<&Elf32Half,Error> {
-        Ok(&self.e_phnum)
+    pub fn e_phoff(&self) -> &Elf32Off {
+        &self.e_phoff
     } 
-    pub fn e_shentsize(&self) -> Result<&Elf32Half,Error> {
-        Ok(&self.e_shentsize)
+    pub fn e_shoff(&self) -> &Elf32Off {
+        &self.e_shoff
     } 
-    pub fn e_phentsize(&self) -> Result<&Elf32Half,Error> {
-        Ok(&self.e_phentsize)
+    pub fn e_flags(&self) -> &Elf32Word {
+        &self.e_flags
+    } 
+    pub fn e_ehsize(&self) -> &Elf32Half {
+        &self.e_ehsize
+    } 
+    pub fn e_phentsize(&self) -> &Elf32Half {
+        &self.e_phentsize
+    } 
+    pub fn e_phnum(&self) -> &Elf32Half {
+        &self.e_phnum
+    } 
+    pub fn e_shentsize(&self) -> &Elf32Half {
+        &self.e_shentsize
+    } 
+    pub fn e_shnum(&self) -> &Elf32Half {
+        &self.e_shnum
+    } 
+    pub fn e_shstrndx(&self) -> &Elf32Half {
+        &self.e_shstrndx
+    } 
+    pub fn section_header_size(&self) -> Elf32Word {
+       Elf32Word::from((u16::from(&self.e_shentsize)  * 
+                    u16::from(&self.e_shnum)) as u32)
+    } 
+    pub fn program_header_size(&self) -> Elf32Word {
+        Elf32Word::from((u16::from(&self.e_phentsize)  * 
+                    u16::from(&self.e_phnum)) as u32)
     } 
 
 }

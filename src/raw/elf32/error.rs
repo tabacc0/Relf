@@ -16,6 +16,7 @@ pub enum Error {
     ProgramHeaderConstructionError,
     CalcOffsetError,
     SectionHeaderRetrievalError,
+    ProgramHeaderRetrievalError,
     InvalidSegmentMemSz,
     NotTable,
     SymbolConstructionError,
@@ -49,6 +50,8 @@ impl fmt::Display for Error {
 
             Self::SectionHeaderRetrievalError => 
                 write!(f,"SectionHeaderRetrievalError"),
+            Self::ProgramHeaderRetrievalError => 
+                write!(f,"ProgramHeaderRetrievalError"),
 
             Self::InvalidSegmentMemSz => write!(f,"InvalidSegmentMemSz"),
 

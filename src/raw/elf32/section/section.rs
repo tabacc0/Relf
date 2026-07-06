@@ -14,6 +14,12 @@ impl<'a> Elf32Section<'a>{
     pub fn new(raw_bytes : &'a[u8] , header : &'a Elf32Shdr) -> Self{
         Self{raw_bytes,header}
     }
+    pub fn raw_byte(&self) -> &'a[u8] {
+        &self.raw_bytes
+    }
+    pub fn header(&self) -> &'a Elf32Shdr {
+        &self.header
+    }
     pub fn is_symtab(&self) -> bool {
         self.header.section_type() == &SHT_SYMTAB ||
             self.header.section_type() == &SHT_DYNSYM

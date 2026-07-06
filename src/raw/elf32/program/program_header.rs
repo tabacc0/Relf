@@ -8,26 +8,26 @@ use crate::raw::elf32::types::*;
 //
 //
 //unused/invalid array member , to be ignored
-const PT_NULL : Elf32Word = Elf32Word{value:0};
+pub const PT_NULL : Elf32Word = Elf32Word{value:0};
 //loadable segment, the bytes from the file are put into memory
 //and padded with 0s if p_memsz is greater than p_filesz
-const PT_LOAD : Elf32Word = Elf32Word{value:1};
+pub const PT_LOAD : Elf32Word = Elf32Word{value:1};
 //entry with dynamic linking info
-const PT_DYNAMIC : Elf32Word = Elf32Word{value:2};
+pub const PT_DYNAMIC : Elf32Word = Elf32Word{value:2};
 //entry has size and location of the path of the interpreter (null term str)
-const PT_INTERP : Elf32Word = Elf32Word{value:3};
+pub const PT_INTERP : Elf32Word = Elf32Word{value:3};
 //entry has auxiliary info
-const PT_NOTE : Elf32Word = Elf32Word{value:4};
+pub const PT_NOTE : Elf32Word = Elf32Word{value:4};
 //unused
-const PT_SHLIB : Elf32Word = Elf32Word{value:5};
+pub const PT_SHLIB : Elf32Word = Elf32Word{value:5};
 //entry holding the location and size of the ph table itself
-const PT_PHDR : Elf32Word = Elf32Word{value:6};
+pub const PT_PHDR : Elf32Word = Elf32Word{value:6};
 //these two define the bounds of the range reserved for cpu-specific semantics
-const PT_LOPROC : Elf32Word = Elf32Word{value:0x70000000};
-const PT_HIPROC : Elf32Word = Elf32Word{value:0x7fffffff};
+pub const PT_LOPROC : Elf32Word = Elf32Word{value:0x70000000};
+pub const PT_HIPROC : Elf32Word = Elf32Word{value:0x7fffffff};
 
 
-const VALID_PT : &[Elf32Word] = &[
+pub const VALID_PT : &[Elf32Word] = &[
     PT_NULL,
     PT_LOAD,
     PT_DYNAMIC,
@@ -41,13 +41,13 @@ const VALID_PT : &[Elf32Word] = &[
 //masks of p_flags and their interpretation
 //
 //
-const PF_X : Elf32Word = Elf32Word{value:1};//this segment is executable
-const PF_W : Elf32Word = Elf32Word{value:2};//writable at runtime
-const PF_R : Elf32Word = Elf32Word{value:4};//readable at runtime
+pub const PF_X : Elf32Word = Elf32Word{value:1};//this segment is executable
+pub const PF_W : Elf32Word = Elf32Word{value:2};//writable at runtime
+pub const PF_R : Elf32Word = Elf32Word{value:4};//readable at runtime
 //mask bit for os-specific semantics
-const PF_MASKOS : Elf32Word = Elf32Word{value:0x0ff00000};
+pub const PF_MASKOS : Elf32Word = Elf32Word{value:0x0ff00000};
 //mask bit for cpu-specific semantics
-const PF_MASKPROC : Elf32Word = Elf32Word{value:0xf0000000};
+pub const PF_MASKPROC : Elf32Word = Elf32Word{value:0xf0000000};
 
 
 #[derive(Debug)]
@@ -146,4 +146,30 @@ impl Elf32Phdr {
             p_align,
         })
     }
+
+    pub fn p_type(&self) -> &Elf32Word {
+        &self.p_type
+    }
+    pub fn p_offset(&self) -> &Elf32Off {
+        &self.p_offset
+    }
+    pub fn p_vaddr(&self) -> &Elf32Addr {
+        &self.p_vaddr
+    }
+    pub fn p_paddr(&self) -> &Elf32Addr {
+        &self.p_paddr
+    }
+    pub fn p_filesz(&self) -> &Elf32Word {
+        &self.p_filesz
+    }
+    pub fn p_memsz(&self) -> &Elf32Word {
+        &self.p_memsz
+    }
+    pub fn p_flags(&self) -> &Elf32Word {
+        &self.p_flags
+    }
+    pub fn p_align(&self) -> &Elf32Word {
+        &self.p_align
+    }
+
 }

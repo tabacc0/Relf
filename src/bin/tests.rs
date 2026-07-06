@@ -9,7 +9,7 @@ fn main(){
         Ok(value) => value,
         Err(_) => return (),
     };
-    while !test_section.is_symtab(){
+    while !test_section.is_reltab(){
         i = i+1;
         test_section = match elf_file.section(i) {
             Ok(value) =>  value,
@@ -18,10 +18,12 @@ fn main(){
     }
 
 
-    let test_symbol = match test_section.symbol(3) {
+    let test_rel = match test_section.rel(3) {
         Ok(value) => value,
         Err(_) => return (),
     };
 
-    println!("{:#?}",test_symbol);
+    println!("{:#?}",test_rel);
+    println!("{}",test_rel.relocated_symbol_idx());
+    println!("{}",test_rel.rel_type());
 }

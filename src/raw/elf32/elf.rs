@@ -3,6 +3,7 @@ use crate::raw::elf32::types::*;
 use crate::raw::elf32::header::Elf32Ehdr;
 use crate::raw::elf32::section::section_header_table::*;
 use crate::raw::elf32::section::section::*;
+use crate::raw::elf32::program::segment::*;
 use crate::raw::elf32::program::program_header_table::*;
 use crate::raw::elf32::section::section_header::*;
 use crate::raw::elf32::program::program_header::*;
@@ -38,21 +39,21 @@ impl Elf32 {
                 return Err(Error::HeaderParsingError);
             }
         };
-        let sht = Elf32Sht::new(header.e_shnum()?);
-        let pht = Elf32Pht::new(header.e_phnum()?);
+        let sht = Elf32Sht::new(header.e_shnum());
+        let pht = Elf32Pht::new(header.e_phnum());
         Ok(Self { raw_bytes, header,sht ,pht})
 
     }
     
     fn calc_section_header_offset(&self,idx:usize) 
         -> Result<Elf32Off,Error>{
-        let e_shnum = self.header.e_shnum()?;
+        let e_shnum = self.header.e_shnum();
         if idx >  u16::from(e_shnum) as usize{
             return Err(Error::IndexOutOfBoundsError);
         }
         let sh_offset = self.header.
-            section_header_offset()?.value as usize;
-        let sh_entsize = self.header.e_shentsize()?.value as usize;
+            e_shoff().value as usize;
+        let sh_entsize = self.header.e_shentsize().value as usize;
         Ok(Elf32Off::from((sh_offset + idx*sh_entsize) as u32))
     }
 
@@ -106,20 +107,20 @@ impl Elf32 {
     fn calc_program_header_offset(&self,idx:usize) -> 
         Result<Elf32Off,Error>
     {
-        let e_phnum = self.header.e_phnum()?;
+        let e_phnum = self.header.e_phnum();
         if idx >  u16::from(e_phnum) as usize{
             return Err(Error::IndexOutOfBoundsError);
         }
         let ph_offset = 
-            self.header.program_header_offset()?.value as usize;
-        let ph_entsize = self.header.e_phentsize()?.value as usize;
+            self.header.e_phoff().value as usize;
+        let ph_entsize = self.header.e_phentsize().value as usize;
         Ok(Elf32Off::from((ph_offset + idx*ph_entsize) as u32))
     }
 
     pub fn program_header(&self,idx:usize) -> Result<&Elf32Phdr,Error>{
         let ph_cell = match self.pht.get_ph(idx) {
             Ok(value) => value,
-            Err(_) => return Err(Error::SectionHeaderRetrievalError)
+            Err(_) => return Err(Error::ProgramHeaderRetrievalError)
         };
         if  ph_cell.get().is_none() {
             let ph_offset = match self.calc_program_header_offset(idx){
@@ -145,5 +146,18 @@ impl Elf32 {
         else {
             return Ok(ph_cell.get().unwrap());
         }
+    }
+
+
+    pub fn segment(&self,idx:usize) -> Result<Elf32Segment,Error> {
+        let header : &Elf32Phdr= match self.program_header(idx){
+            Ok(value) => value,
+            Err(_) => return Err(Error::ProgramHeaderRetrievalError),
+        } ;
+        let section_offset = u32::from(header.p_offset()) as usize;
+        let section_size  = u32::from(header.p_filesz()) as usize;
+        let raw_bytes : &[u8] = 
+        &self.raw_bytes[section_offset..section_offset+section_size];
+        Ok(Elf32Segment::new(raw_bytes,header))
     }
 }

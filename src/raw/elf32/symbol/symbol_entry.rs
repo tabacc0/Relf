@@ -97,7 +97,7 @@ impl Elf32Sym {
                 Ok(value) => value,
                 Err(_) => return Err(Error::FieldBuildingError),
             };
-            
+
             let st_info = raw_bytes[12];
             let st_other = raw_bytes[13];
 
@@ -117,4 +117,78 @@ impl Elf32Sym {
 
     }
 
+    pub fn st_name(&self) -> &Elf32Word {
+        &self.st_name
+    }
+    pub fn st_value(&self) -> &Elf32Addr {
+        &self.st_value
+    }
+    pub fn st_size(&self) -> &Elf32Word {
+        &self.st_size
+    }
+    pub fn st_info(&self) -> &u8 {
+        &self.st_info
+    }
+    pub fn st_other(&self) -> &u8 {
+        &self.st_other
+    }
+    pub fn st_shndx(&self) -> &Elf32Half {
+        &self.st_shndx
+    }
+
+    pub fn st_type(&self) -> u8 {
+        let st_info = self.st_info;
+        let st_type = st_info & 0xf;
+     st_type
+    }
+    pub fn st_bind(&self) -> u8 {
+        let st_info = self.st_info;
+        let st_bind = st_info >> 4;
+     st_bind
+    }
+    pub fn is_local(&self) -> bool {
+        if self.st_bind() != STB_LOCAL{
+            return false
+        }
+        true
+    }
+    pub fn is_global(&self) -> bool {
+        if self.st_bind() != STB_GLOBAL{
+            return false
+        }
+        true
+    }
+    pub fn is_weak(&self) -> bool {
+        if self.st_bind() != STB_WEAK{
+            return false
+        }
+        true
+    }
+
+    pub fn is_notype(&self) -> bool {
+        if self.st_type() != STT_NOTYPE{
+            return false
+        }
+        true
+    }
+    pub fn is_object(&self) -> bool {
+        if self.st_type() != STT_OBJECT{
+            return false
+        }
+        true
+    }
+
+    pub fn is_func(&self) -> bool {
+        if self.st_type() != STT_FUNC{
+            return false
+        }
+        true
+    }
+
+    pub fn is_section(&self) -> bool {
+        if self.st_type() != STT_SECTION{
+            return false
+        }
+        true
+    }
 }
