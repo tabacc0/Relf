@@ -2,89 +2,8 @@ use crate::raw::elf32::types::*;
 use crate::raw::elf32::error::*;
 use crate::raw::elf32::section::section_header::*;
 use crate::raw::elf32::program::program_header::*;
-// values for e_type
-pub const ET_NONE : Elf32Half = Elf32Half{value:0};
-pub const ET_REL : Elf32Half = Elf32Half{value:1};//Relocatable file
-pub const ET_EXEC : Elf32Half = Elf32Half{value:2};//Executable file
-pub const ET_DYN : Elf32Half = Elf32Half{value:3};//Shared Object file
-pub const ET_CORE : Elf32Half = Elf32Half{value:4};//Core file
-pub const ET_LOPROC : Elf32Half = Elf32Half{value:0xff00};//processor specific
-pub const ET_HIPROC : Elf32Half = Elf32Half{value:0xffff};//processor specific
-
-pub const VALID_ET : &[Elf32Half] = &[
-    ET_NONE ,
-    ET_REL , 
-    ET_EXEC ,
-    ET_DYN , 
-    ET_CORE ,
-    ET_LOPROC,
-    ET_HIPROC,
-];
-// values for e_machine
-pub const EM_NONE : Elf32Half = Elf32Half{value:0};
-pub const EM_M32 : Elf32Half = Elf32Half{value:1};//AT&T WE 32100
-pub const EM_SPARC : Elf32Half = Elf32Half{value:2};//SPARC
-pub const EM_386 : Elf32Half = Elf32Half{value:3};//Intel
-pub const EM_68K : Elf32Half = Elf32Half{value:4};//Motorola 68000
-pub const EM_88K : Elf32Half = Elf32Half{value:5};//Motorola 88000
-pub const EM_860 : Elf32Half = Elf32Half{value:7};//intel 80860
-pub const EM_MIPS : Elf32Half = Elf32Half{value:8};//big endian MIPS RS3
-pub const EM_MIPS_RS4_BE : Elf32Half = Elf32Half{value:10};//big endian MIPS RS4
-                                                       //
-pub const VALID_EM : &[Elf32Half] = &[
-    EM_NONE,
-    EM_M32 ,
-    EM_SPARC,
-    EM_386 ,
-    EM_68K ,
-    EM_88K ,
-    EM_860 ,
-    EM_MIPS,
-    EM_MIPS_RS4_BE,
-];
-
-// values for e_version :
-pub const EV_NONE : Elf32Word = Elf32Word{value:0}; //invalid version
-pub const EV_CURRENT : Elf32Word = Elf32Word{value:1}; //invalid version
-
-pub const VALID_EV : &[Elf32Word] = &[
-    EV_NONE ,
-    EV_CURRENT,
-];
-
-//indexes in e_ident and their signification
-pub const EI_MAG0 : u8 = 0;//magic number 0 : u8 = 0x7f
-pub const EI_MAG1 : u8 = 1;//magic number 1 : u8 = 'E'
-pub const EI_MAG2 : u8 = 2;//magic number 2 : u8 = 'L'
-pub const EI_MAG3 : u8 = 3;//magic number 3 : u8 = 'F'
-pub const EI_CLASS : u8 = 4;//file class: see below
-pub const EI_DATA : u8 = 5;//data encoding type: see blow
-pub const EI_VERSION : u8 = 6;//file version, must be EV_CURRENT
-pub const EI_PAD : u8 = 7;//start of padding bytes(unused)
-
-//values of e_ident[EI_CLASS] and their signigication
-pub const ELFCLASS32 : u8 = 1 ;//32 bit object
-pub const ELFCLASS64 : u8 = 2 ;//64 bit object
-                           
-
-pub const VALID_EI_CLASS : &[u8] = &[
-    ELFCLASS32,
-    ELFCLASS64,
-];
-
-//values of e_ident[EI_DATA] and their signigication
-//least significant byte representation(little endian)
-pub const ELFDATA2LSB : u8 = 1 ;
-//most significant byte representation(big endian)
-pub const ELFDATA2MSB : u8 = 2 ;
-
-pub const VALID_EI_DATA : &[u8] = &[
-    ELFDATA2LSB,
-    ELFDATA2MSB,
-];
-
-//size of the e_ident table
-pub const EI_NIDENT : u8 = 16;
+pub mod constants;
+use constants::*;
 
 
 #[derive(Debug)]
@@ -152,8 +71,6 @@ impl Elf32Ehdr {
             match Elf32Half::from_bytes(&raw_bytes[18..20],endianness){
             Ok(value) => {
                 if !VALID_EM.contains(&value) {
-
-                    println!("{:#?}",value);
                     return Err(Error::InvalidFieldValue);
                 }
                 value

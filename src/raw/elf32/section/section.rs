@@ -3,6 +3,7 @@ use crate::raw::elf32::types::*;
 use crate::raw::elf32::error::*;
 use crate::raw::elf32::symbol::symbol_entry::*;
 use crate::raw::elf32::section::section_header::*;
+use crate::raw::elf32::section::constants::*;
 
 #[derive(Debug)]
 pub struct Elf32Section<'a> {

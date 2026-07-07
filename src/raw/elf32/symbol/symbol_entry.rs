@@ -38,6 +38,9 @@ const STB_LOCAL:u8 = 0;
 const STB_GLOBAL:u8 = 1;
 //same as STB_GLOBAL but has a lesser precedence
 const STB_WEAK:u8 = 2;
+//these to designate the range reserved for operating system-specific semantics
+const STB_LOOS:u8 = 10;
+const STB_HIOS:u8 = 12;
 //these to designate the range reserved for processor-specific semantics
 const STB_LOPROC:u8 = 13;
 const STB_HIPROC:u8 = 15;
@@ -59,9 +62,40 @@ const STT_SECTION:u8 = 3;//associated with a section , used for relocation
 //(see section_header_table.rs)
 //it precedes other symbols with STB_LOCAL
 const STT_FILE:u8 = 4;
+//uninitialized common block , in object files these are not allocated
+//and must their st_shndx must have a special section index 
+//(the reserved ones , see the section_header_table file)
+// but in executable/shared objects an 
+//allocation must be made and it needs to be placed in some section
+const STT_COMMON:u8 = 5;
+//this symbol is used (exclusively) by TLS relocation
+const STT_TLS:u8 = 6;
+//these to designate the range reserved for operating system-specific semantics
+const STT_LOOS:u8 = 10;
+const STT_HIOS:u8 = 12;
 //these to designate the range reserved for processor-specific semantics
 const STT_LOPROC:u8 = 13;
 const STT_HIPROC:u8 = 15;
+
+
+
+//values in st_other and their significance
+//
+//the spec defines the following :
+//#define ELF32_ST_VISIBILITY(o) ((o)&0x3)
+//
+//values for ELF32_ST_VISIBILITY and their significance : 
+//the visibility as indicated by ELF32_ST_BIND
+const STV_DEFAULT:u8 = 0;
+//the symbol is visible globally but cannot be used 
+//to resolve references from outside the object that
+//defines it , symbols with STB_LOCAL may not have this set
+const STV_INTERNAL:u8 = 1;
+//not visible to other objects
+const STV_HIDDEN:u8 = 2;
+//cpu-specific
+const STV_PROTECTED:u8 = 3;
+
 #[derive(Debug)]
 pub struct Elf32Sym {
     st_name:Elf32Word,//index into the object's string table
@@ -71,7 +105,7 @@ pub struct Elf32Sym {
     st_size:Elf32Word,
 //specifies the symbol types and binding attribute , details above
     st_info:u8,
-//hold 0 , no meaning assigned yet
+//some bits specify symbol visibility other are 0(unused) ,see above.
     st_other:u8,
 //index of the section header of the section to which
 //the symbol entry relates

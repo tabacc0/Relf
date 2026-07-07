@@ -1,7 +1,7 @@
 use std::ops::Not;
 use std::ops::BitAnd;
 use crate::raw::elf32::error::*;
-use crate::raw::elf32::header::*;
+use crate::raw::elf32::header::constants::*;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
 #[repr(transparent)]
 pub struct Elf32Addr{pub value : u32,}

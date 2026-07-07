@@ -22,6 +22,12 @@ pub const PT_NOTE : Elf32Word = Elf32Word{value:4};
 pub const PT_SHLIB : Elf32Word = Elf32Word{value:5};
 //entry holding the location and size of the ph table itself
 pub const PT_PHDR : Elf32Word = Elf32Word{value:6};
+//this entry implements TLS(thread local storage)
+//see : https://refspecs.linuxbase.org/elf/gabi4+/ch5.pheader.html
+pub const PT_TLS : Elf32Word = Elf32Word{value:7};
+//these two define the bounds of the range reserved for operating system-specific semantics
+pub const PT_LOOS : Elf32Word = Elf32Word{value:0x60000000};
+pub const PT_HIOS : Elf32Word = Elf32Word{value:0x6fffffff};
 //these two define the bounds of the range reserved for cpu-specific semantics
 pub const PT_LOPROC : Elf32Word = Elf32Word{value:0x70000000};
 pub const PT_HIPROC : Elf32Word = Elf32Word{value:0x7fffffff};
@@ -35,6 +41,7 @@ pub const VALID_PT : &[Elf32Word] = &[
     PT_NOTE,
     PT_SHLIB,
     PT_PHDR,
+    PT_TLS,
 ];
 
 
