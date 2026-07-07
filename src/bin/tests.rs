@@ -1,6 +1,6 @@
 use relf::raw::elf32::elf::*;
 fn main(){
-    let mut elf_file = match Elf32::from_file("./test") {
+    let elf_file = match Elf32::from_file("./test") {
         Ok(f) =>f,
         Err(_) => return (),
     };
@@ -19,8 +19,8 @@ fn main(){
 
 
     let test_rel = match test_section.rel(3) {
-        Ok(value) => value,
-        Err(_) => return (),
+       Ok(value) => value,
+       Err(_) => return (),
     };
 
     println!("{:#?}",test_rel);

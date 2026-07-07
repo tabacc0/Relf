@@ -80,31 +80,35 @@ pub struct Elf32Sym {
 }
 
 impl Elf32Sym {
-    pub fn from_bytes(raw_bytes : &[u8;size_of::<Elf32Sym>()]) 
+    pub fn from_bytes(raw_bytes : &[u8;size_of::<Elf32Sym>()],endianness:u8) 
         -> Result<Self,Error>{
 
-            let st_name = match Elf32Word::from_bytes(&raw_bytes[0..4]){
-                Ok(value) => value,
-                Err(_) => return Err(Error::FieldBuildingError),
-            };
+            let st_name = 
+                match Elf32Word::from_bytes(&raw_bytes[0..4],endianness){
+                    Ok(value) => value,
+                    Err(_) => return Err(Error::FieldBuildingError),
+                };
 
-            let st_value = match Elf32Addr::from_bytes(&raw_bytes[4..8]){
-                Ok(value) => value,
-                Err(_) => return Err(Error::FieldBuildingError),
-            };
+            let st_value = 
+                match Elf32Addr::from_bytes(&raw_bytes[4..8],endianness){
+                    Ok(value) => value,
+                    Err(_) => return Err(Error::FieldBuildingError),
+                };
 
-            let st_size = match Elf32Word::from_bytes(&raw_bytes[8..12]){
-                Ok(value) => value,
-                Err(_) => return Err(Error::FieldBuildingError),
-            };
+            let st_size = 
+                match Elf32Word::from_bytes(&raw_bytes[8..12],endianness){
+                    Ok(value) => value,
+                    Err(_) => return Err(Error::FieldBuildingError),
+                };
 
             let st_info = raw_bytes[12];
             let st_other = raw_bytes[13];
 
-            let st_shndx = match Elf32Half::from_bytes(&raw_bytes[14..16]){
-                Ok(value) => value,
-                Err(_) => return Err(Error::FieldBuildingError),
-            };
+            let st_shndx = 
+                match Elf32Half::from_bytes(&raw_bytes[14..16],endianness){
+                    Ok(value) => value,
+                    Err(_) => return Err(Error::FieldBuildingError),
+                };
 
             Ok (Self{
                 st_name,

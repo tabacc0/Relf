@@ -24,7 +24,6 @@ impl Elf32 {
         use crate::raw::elf32::error::*;
         let raw_bytes : Vec<u8> = match fs::read(&path) {
             Err(e) =>{
-                println!("error : {}",e);
                 return Err(Error::FileReadError);
             }
             Ok(f) => f,
@@ -35,14 +34,16 @@ impl Elf32 {
         let header = match Elf32Ehdr::from_bytes(header_bytes) {
             Ok(val) => val,
             Err(e) => {
-                println!("error : {}",e);
                 return Err(Error::HeaderParsingError);
             }
         };
         let sht = Elf32Sht::new(header.e_shnum());
         let pht = Elf32Pht::new(header.e_phnum());
-        Ok(Self { raw_bytes, header,sht ,pht})
+        Ok(Self { raw_bytes,header,sht ,pht})
 
+    }
+    fn endianness(&self) -> u8 {
+        self.header.endianness()
     }
     
     fn calc_section_header_offset(&self,idx:usize) 
@@ -75,10 +76,10 @@ impl Elf32 {
                 .try_into().unwrap();
 
             let section_header = match 
-                Elf32Shdr::from_bytes(section_header_bytes){
+                Elf32Shdr::from_bytes
+                (section_header_bytes,self.endianness()){
                     Ok(value) => value,
                     Err(e) => {
-                        println!("error : {}",e);
                         return Err(Error::SectionHeaderConstructionError);
                     }
 
@@ -100,7 +101,7 @@ impl Elf32 {
         let section_size  = u32::from(header.section_size()) as usize;
         let raw_bytes : &[u8] = 
         &self.raw_bytes[section_offset..section_offset+section_size];
-        Ok(Elf32Section::new(raw_bytes,header))
+        Ok(Elf32Section::new(raw_bytes,header,self.endianness()))
     }
 
 
@@ -135,7 +136,8 @@ impl Elf32 {
                 .try_into().unwrap();
 
             let program_header = match 
-                Elf32Phdr::from_bytes(program_header_bytes){
+                Elf32Phdr::from_bytes
+                (program_header_bytes,self.endianness()){
                     Ok(value) => value,
                     Err(_) => 
                         return Err(Error::ProgramHeaderConstructionError),

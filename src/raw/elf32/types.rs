@@ -1,17 +1,26 @@
 use std::ops::Not;
 use std::ops::BitAnd;
 use crate::raw::elf32::error::*;
+use crate::raw::elf32::header::*;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
 #[repr(transparent)]
 pub struct Elf32Addr{pub value : u32,}
 
 impl Elf32Addr {
-    pub fn from_bytes(raw_bytes : &[u8]) -> Result<Self,Error> {
+    pub fn from_bytes(raw_bytes : &[u8],endianness : u8) 
+        -> Result<Self,Error> {
         let raw_bytes : [u8;4] = match raw_bytes.try_into() {
             Ok(value) => value,
             Err(e) => return Err(Error::ByteParsingError),
         };
-        Ok(Self {value : u32::from_le_bytes(raw_bytes)})
+        if endianness == ELFDATA2LSB {
+            Ok(Self {value : u32::from_le_bytes(raw_bytes)})
+        }else if endianness == ELFDATA2MSB {
+            Ok(Self {value : u32::from_be_bytes(raw_bytes)})
+        }
+        else{
+            return Err(Error::InvalidElfEndian);
+        }
     }
 }
 
@@ -48,12 +57,20 @@ impl From<&Elf32Addr> for u32 {
 pub struct Elf32Half{pub value : u16,}
 
 impl Elf32Half {
-    pub fn from_bytes(raw_bytes : &[u8]) -> Result<Self,Error> {
+    pub fn from_bytes(raw_bytes : &[u8],endianness : u8)
+        -> Result<Self,Error> {
         let raw_bytes : [u8;2] = match raw_bytes.try_into(){
             Ok(value) => value,
             Err(e) => return Err(Error::ByteParsingError),
         };
-        Ok(Self {value : u16::from_le_bytes(raw_bytes)})
+        if endianness == ELFDATA2LSB {
+            Ok(Self {value : u16::from_le_bytes(raw_bytes)})
+        }else if endianness == ELFDATA2MSB {
+            Ok(Self {value : u16::from_be_bytes(raw_bytes)})
+        }
+        else{
+            return Err(Error::InvalidElfEndian);
+        }
     }
 }
 
@@ -89,13 +106,21 @@ impl From<&Elf32Half> for u16 {
 pub struct Elf32Off{pub value : u32,}
 
 impl Elf32Off {
-    pub fn from_bytes(raw_bytes : &[u8]) -> Result<Self,Error> {
+    pub fn from_bytes(raw_bytes : &[u8],endianness : u8)
+        -> Result<Self,Error> {
         let raw_bytes : [u8;4] = match raw_bytes.try_into(){
             Ok(value) => value,
             Err(e) => return Err(Error::ByteParsingError),
         };
 
-        Ok(Self {value : u32::from_le_bytes(raw_bytes)})
+        if endianness == ELFDATA2LSB {
+            Ok(Self {value : u32::from_le_bytes(raw_bytes)})
+        }else if endianness == ELFDATA2MSB {
+            Ok(Self {value : u32::from_be_bytes(raw_bytes)})
+        }
+        else{
+            return Err(Error::InvalidElfEndian);
+        }
     }
 }
 
@@ -132,13 +157,21 @@ impl From<&Elf32Off> for u32 {
 pub struct Elf32Sword{pub value : i32,}
 
 impl Elf32Sword {
-    pub fn from_bytes(raw_bytes : &[u8]) -> Result<Self,Error> {
+    pub fn from_bytes(raw_bytes : &[u8],endianness : u8)
+        -> Result<Self,Error> {
         let raw_bytes : [u8;4] = match raw_bytes.try_into(){
             Ok(value) => value,
             Err(e) => return Err(Error::ByteParsingError),
         };
 
-        Ok(Self {value : i32::from_le_bytes(raw_bytes)})
+        if endianness == ELFDATA2LSB {
+            Ok(Self {value : i32::from_le_bytes(raw_bytes)})
+        }else if endianness == ELFDATA2MSB {
+            Ok(Self {value : i32::from_be_bytes(raw_bytes)})
+        }
+        else{
+            return Err(Error::InvalidElfEndian);
+        }
     }
 }
 
@@ -171,13 +204,21 @@ impl From<&Elf32Sword> for i32 {
 pub struct Elf32Word{pub value : u32,}
 
 impl Elf32Word {
-    pub fn from_bytes(raw_bytes : &[u8]) -> Result<Self,Error> {
+    pub fn from_bytes(raw_bytes : &[u8],endianness : u8)
+        -> Result<Self,Error> {
         let raw_bytes : [u8;4] = match raw_bytes.try_into(){
             Ok(value) => value,
             Err(e) => return Err(Error::ByteParsingError),
         };
 
-        Ok(Self {value : u32::from_le_bytes(raw_bytes)})
+        if endianness == ELFDATA2LSB {
+            Ok(Self {value : u32::from_le_bytes(raw_bytes)})
+        }else if endianness == ELFDATA2MSB {
+            Ok(Self {value : u32::from_be_bytes(raw_bytes)})
+        }
+        else{
+            return Err(Error::InvalidElfEndian);
+        }
     }
 }
 

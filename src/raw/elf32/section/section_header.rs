@@ -106,69 +106,82 @@ pub struct Elf32Shdr {
 
 
 impl Elf32Shdr {
-    pub fn from_bytes(raw_bytes:&[u8;size_of::<Self>()]) -> Result<Self,Error>
+    pub fn from_bytes(raw_bytes:&[u8;size_of::<Self>()],endianness : u8)
+        -> Result<Self,Error>
     {
-        let sh_name = match Elf32Word::from_bytes(&raw_bytes[0..4]){
-            Ok(value) => value,
-            Err(e) => return Err(Error::FieldBuildingError),
-        };
+        let sh_name = 
+            match Elf32Word::from_bytes(&raw_bytes[0..4],endianness){
+                Ok(value) => value,
+                Err(e) => return Err(Error::FieldBuildingError),
+            };
 
-        let sh_type = match Elf32Word::from_bytes(&raw_bytes[4..8]){
-            Ok(value) => {
-                if !VALID_SHT.contains(&value) && 
-                    (value < SHT_LOPROC && value > SHT_HIUSER)
-                {
-                    return Err(Error::InvalidFieldValue);
+        let sh_type = 
+            match Elf32Word::from_bytes(&raw_bytes[4..8],endianness){
+                Ok(value) => {
+                    if !VALID_SHT.contains(&value) && 
+                        (value < SHT_LOPROC && value > SHT_HIUSER)
+                    {
+                        println!("here");
+                        return Err(Error::InvalidFieldValue);
                 }
                 value
             },
             Err(e) => return Err(Error::FieldBuildingError),
         };
 
-        let sh_flag = match Elf32Word::from_bytes(&raw_bytes[8..12]){
-            Ok(value) => value,
-            Err(e) => return Err(Error::FieldBuildingError),
-        };
+        let sh_flag = 
+            match Elf32Word::from_bytes(&raw_bytes[8..12],endianness){
+                Ok(value) => value,
+                Err(e) => return Err(Error::FieldBuildingError),
+            };
 
-        let sh_addr = match Elf32Addr::from_bytes(&raw_bytes[12..16]){
-            Ok(value) => value ,
-            Err(e) => return Err(Error::FieldBuildingError),
-        };
+        let sh_addr = 
+            match Elf32Addr::from_bytes(&raw_bytes[12..16],endianness){
+                Ok(value) => value ,
+                Err(e) => return Err(Error::FieldBuildingError),
+            };
 
-        let sh_offset = match Elf32Off::from_bytes(&raw_bytes[16..20]){
-            Ok(value) => value ,
-            Err(e) => return Err(Error::FieldBuildingError),
-        };
+        let sh_offset = 
+            match Elf32Off::from_bytes(&raw_bytes[16..20],endianness){
+                Ok(value) => value ,
+                Err(e) => return Err(Error::FieldBuildingError),
+            };
 
-        let sh_size = match Elf32Word::from_bytes(&raw_bytes[20..24]){
-            Ok(value) => value ,
-            Err(e) => return Err(Error::FieldBuildingError),
-        };
+        let sh_size = 
+            match Elf32Word::from_bytes(&raw_bytes[20..24],endianness){
+                Ok(value) => value ,
+                Err(e) => return Err(Error::FieldBuildingError),
+            };
 
-        let sh_link = match Elf32Word::from_bytes(&raw_bytes[24..28]){
-            Ok(value) => value ,
-            Err(e) => return Err(Error::FieldBuildingError),
-        };
+        let sh_link = 
+            match Elf32Word::from_bytes(&raw_bytes[24..28],endianness){
+                Ok(value) => value ,
+                Err(e) => return Err(Error::FieldBuildingError),
+            };
 
-        let sh_info = match Elf32Word::from_bytes(&raw_bytes[28..32]){
-            Ok(value) => value ,
-            Err(e) => return Err(Error::FieldBuildingError),
-        };
+        let sh_info = 
+            match Elf32Word::from_bytes(&raw_bytes[28..32],endianness){
+                Ok(value) => value ,
+                Err(e) => return Err(Error::FieldBuildingError),
+            };
 
-        let sh_addralign = match Elf32Word::from_bytes(&raw_bytes[32..36]){
-            Ok(value) => {
-                //making sure alignment is sane
-                if u32::from(&value) != 1 && u32::from(&value) % 2 != 0{
-                    return Err(Error::InvalidFieldValue);
-                }
+        let sh_addralign = 
+            match Elf32Word::from_bytes(&raw_bytes[32..36],endianness){
+                Ok(value) => {
+                    //making sure alignment is sane
+                    if u32::from(&value) != 1 && u32::from(&value) % 2 != 0{
+                        println!("here");
+                        return Err(Error::InvalidFieldValue);
+                    }
                 value
             }
             Err(e) => return Err(Error::FieldBuildingError),
         };
-        let sh_entsize = match Elf32Word::from_bytes(&raw_bytes[36..40]){
-            Ok(value) => value,
-            Err(e) => return Err(Error::FieldBuildingError),
-        };
+        let sh_entsize = 
+            match Elf32Word::from_bytes(&raw_bytes[36..40],endianness){
+                Ok(value) => value,
+                Err(e) => return Err(Error::FieldBuildingError),
+            };
 
         Ok(Self {
             sh_name ,

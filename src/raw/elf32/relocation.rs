@@ -37,17 +37,19 @@ pub struct Elf32Rela {
 }
 
 impl Elf32Rel {
-    pub fn from_bytes(raw_bytes : &[u8;size_of::<Elf32Rel>()])
+    pub fn from_bytes(raw_bytes : &[u8;size_of::<Elf32Rel>()],endianness:u8)
         -> Result<Self,Error> 
     {
-        let r_offset = match Elf32Off::from_bytes(&raw_bytes[0..4]){
-            Ok(value) => value,
-            Err(_) => return Err(Error::FieldBuildingError),
-        };
-        let r_info = match Elf32Word::from_bytes(&raw_bytes[4..8]){
-            Ok(value) => value,
-            Err(_) => return Err(Error::FieldBuildingError),
-        };
+        let r_offset = 
+            match Elf32Off::from_bytes(&raw_bytes[0..4],endianness){
+                Ok(value) => value,
+                Err(_) => return Err(Error::FieldBuildingError),
+            };
+        let r_info = 
+            match Elf32Word::from_bytes(&raw_bytes[4..8],endianness){
+                Ok(value) => value,
+                Err(_) => return Err(Error::FieldBuildingError),
+            };
         Ok(Self{r_offset,r_info})
     }
     pub fn r_offset(&self) -> &Elf32Off {
@@ -69,21 +71,24 @@ impl Elf32Rel {
 }
 
 impl Elf32Rela {
-    pub fn from_bytes(raw_bytes : &[u8;size_of::<Elf32Rela>()])
+    pub fn from_bytes(raw_bytes : &[u8;size_of::<Elf32Rela>()],endianness:u8)
         -> Result<Self,Error> 
     {
-        let r_offset = match Elf32Off::from_bytes(&raw_bytes[0..4]){
-            Ok(value) => value,
-            Err(_) => return Err(Error::FieldBuildingError),
-        };
-        let r_info = match Elf32Word::from_bytes(&raw_bytes[4..8]){
-            Ok(value) => value,
-            Err(_) => return Err(Error::FieldBuildingError),
-        };
-        let r_addend = match Elf32Sword::from_bytes(&raw_bytes[8..12]){
-            Ok(value) => value,
-            Err(_) => return Err(Error::FieldBuildingError),
-        };
+        let r_offset = 
+            match Elf32Off::from_bytes(&raw_bytes[0..4],endianness){
+                Ok(value) => value,
+                Err(_) => return Err(Error::FieldBuildingError),
+            };
+        let r_info = 
+            match Elf32Word::from_bytes(&raw_bytes[4..8],endianness){
+                Ok(value) => value,
+                Err(_) => return Err(Error::FieldBuildingError),
+            };
+        let r_addend = 
+            match Elf32Sword::from_bytes(&raw_bytes[8..12],endianness){
+                Ok(value) => value,
+                Err(_) => return Err(Error::FieldBuildingError),
+            };
         Ok(Self{r_offset,r_info,r_addend})
     }
 

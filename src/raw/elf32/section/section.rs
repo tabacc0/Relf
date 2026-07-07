@@ -8,11 +8,13 @@ use crate::raw::elf32::section::section_header::*;
 pub struct Elf32Section<'a> {
     raw_bytes : &'a[u8],
     header : &'a Elf32Shdr,
+    endianness : u8,
 }
 
 impl<'a> Elf32Section<'a>{
-    pub fn new(raw_bytes : &'a[u8] , header : &'a Elf32Shdr) -> Self{
-        Self{raw_bytes,header}
+    pub fn new(raw_bytes : &'a[u8] , header : &'a Elf32Shdr,endianness : u8)
+        -> Self{
+        Self{raw_bytes,header,endianness}
     }
     pub fn raw_byte(&self) -> &'a[u8] {
         &self.raw_bytes
@@ -78,10 +80,11 @@ impl<'a> Elf32Section<'a>{
             self.raw_bytes
             [symbol_offset..symbol_offset+size_of::<Elf32Sym>()]
             .try_into().unwrap();
-        let symbol = match Elf32Sym::from_bytes(symbol_bytes) {
-            Ok(value) => Ok(value),
-            Err(_) => Err(Error::SymbolConstructionError)
-        };
+        let symbol = 
+            match Elf32Sym::from_bytes(symbol_bytes,self.endianness) {
+                Ok(value) => Ok(value),
+                Err(_) => Err(Error::SymbolConstructionError)
+            };
         symbol
     }
 
@@ -112,7 +115,7 @@ impl<'a> Elf32Section<'a>{
             self.raw_bytes
             [rel_offset..rel_offset+size_of::<Elf32Rel>()]
             .try_into().unwrap();
-        let rel = match Elf32Rel::from_bytes(rel_bytes) {
+        let rel = match Elf32Rel::from_bytes(rel_bytes,self.endianness) {
             Ok(value) => Ok(value),
             Err(_) => Err(Error::RelConstructionError)
         };
@@ -145,10 +148,11 @@ impl<'a> Elf32Section<'a>{
             self.raw_bytes
             [rela_offset..rela_offset+size_of::<Elf32Rela>()]
             .try_into().unwrap();
-        let rela = match Elf32Rela::from_bytes(rela_bytes) {
-            Ok(value) => Ok(value),
-            Err(_) => Err(Error::RelaConstructionError)
-        };
+        let rela = 
+            match Elf32Rela::from_bytes(rela_bytes,self.endianness) {
+                Ok(value) => Ok(value),
+                Err(_) => Err(Error::RelaConstructionError)
+            };
         rela
     }
 }

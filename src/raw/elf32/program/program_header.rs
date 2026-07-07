@@ -73,62 +73,70 @@ pub struct Elf32Phdr {
 }
 
 impl Elf32Phdr {
-    pub fn from_bytes(raw_bytes : &[u8;size_of::<Elf32Phdr>()]) 
+    pub fn from_bytes(raw_bytes : &[u8;size_of::<Elf32Phdr>()],endianness:u8) 
         -> Result<Self,Error> {
 
-        let p_type = match Elf32Word::from_bytes(&raw_bytes[0..4]){
-            Ok(value) => {
-                if !VALID_PT.contains(&value) && 
-                    (value < PT_LOPROC || value > PT_HIPROC)
-                {
-                    return Err(Error::InvalidFieldValue);
+        let p_type = 
+            match Elf32Word::from_bytes(&raw_bytes[0..4],endianness){
+                Ok(value) => {
+                    if !VALID_PT.contains(&value) && 
+                        (value < PT_LOPROC || value > PT_HIPROC)
+                    {
+                        return Err(Error::InvalidFieldValue);
                 }
                 value
             },
             Err(e) => return Err(Error::FieldBuildingError),
         };
 
-        let p_offset = match Elf32Off::from_bytes(&raw_bytes[4..8]){
-            Ok(value) => value,
-            Err(e) => return Err(Error::FieldBuildingError),
-        };
+        let p_offset = 
+            match Elf32Off::from_bytes(&raw_bytes[4..8],endianness){
+                Ok(value) => value,
+                Err(e) => return Err(Error::FieldBuildingError),
+            };
 
-        let p_vaddr = match Elf32Addr::from_bytes(&raw_bytes[8..12]){
-            Ok(value) => value,
-            Err(e) => return Err(Error::FieldBuildingError),
-        };
+        let p_vaddr = 
+            match Elf32Addr::from_bytes(&raw_bytes[8..12],endianness){
+                Ok(value) => value,
+                Err(e) => return Err(Error::FieldBuildingError),
+            };
 
-        let p_paddr = match Elf32Addr::from_bytes(&raw_bytes[12..16]){
-            Ok(value) => value,
-            Err(e) => return Err(Error::FieldBuildingError),
-        };
+        let p_paddr = 
+            match Elf32Addr::from_bytes(&raw_bytes[12..16],endianness){
+                Ok(value) => value,
+                Err(e) => return Err(Error::FieldBuildingError),
+            };
 
-        let p_filesz = match Elf32Word::from_bytes(&raw_bytes[16..20]){
-            Ok(value) => value,
-            Err(e) => return Err(Error::FieldBuildingError),
-        };
+        let p_filesz = 
+            match Elf32Word::from_bytes(&raw_bytes[16..20],endianness){
+                Ok(value) => value,
+                Err(e) => return Err(Error::FieldBuildingError),
+            };
 
-        let p_memsz = match Elf32Word::from_bytes(&raw_bytes[20..24]){
-            Ok(value) => {
-                if value < p_filesz {
-                    return Err(Error::InvalidSegmentMemSz);
-                }
-                value
+        let p_memsz = 
+            match Elf32Word::from_bytes(&raw_bytes[20..24],endianness){
+                Ok(value) => {
+                    if value < p_filesz {
+                        return Err(Error::InvalidSegmentMemSz);
+                    }
+                    value
             },
             Err(e) => return Err(Error::FieldBuildingError),
         };
 
-        let p_flags = match Elf32Word::from_bytes(&raw_bytes[24..28]){
-            Ok(value) => value,
-            Err(e) => return Err(Error::FieldBuildingError),
-        };
+        let p_flags = 
+            match Elf32Word::from_bytes(&raw_bytes[24..28],endianness){
+                Ok(value) => value,
+                Err(e) => return Err(Error::FieldBuildingError),
+            };
 
-        let p_align = match Elf32Word::from_bytes(&raw_bytes[28..32]){
-            Ok(value) => {
-                //making sure alignment is sane
-                if u32::from(&value) != 1 && u32::from(&value) % 2 != 0{//
-                    return Err(Error::InvalidFieldValue);
-                }
+        let p_align = 
+            match Elf32Word::from_bytes(&raw_bytes[28..32],endianness){
+                Ok(value) => {
+                    //making sure alignment is sane
+                    if u32::from(&value) != 1 && u32::from(&value) % 2 != 0{//
+                        return Err(Error::InvalidFieldValue);
+                    }
                 value
             }
             Err(e) => return Err(Error::FieldBuildingError),
