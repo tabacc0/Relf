@@ -18,19 +18,19 @@ impl<'a> Elf32Segment<'a>{
     }
 
     pub fn is_executable(&self) -> bool{
-        if u32::from(&(*self.header.p_flags() & PF_X)) == 0{
+        if u32::from(self.header.p_flags() & PF_X) == 0{
             return false
         }
         true
     }
     pub fn is_writable(&self) -> bool{
-        if u32::from(&(*self.header.p_flags() & PF_W)) == 0{
+        if u32::from(self.header.p_flags() & PF_W) == 0{
             return false
         }
         true
     }
     pub fn is_readable(&self) -> bool{
-        if u32::from(&(*self.header.p_flags() & PF_R)) == 0{
+        if u32::from(self.header.p_flags() & PF_R) == 0{
             return false
         }
         true

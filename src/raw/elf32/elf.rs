@@ -23,9 +23,7 @@ impl Elf32 {
     {
         use crate::raw::elf32::error::*;
         let raw_bytes : Vec<u8> = match fs::read(&path) {
-            Err(e) =>{
-                return Err(Error::FileReadError);
-            }
+            Err(_) => return Err(Error::FileReadError),
             Ok(f) => f,
         };
         let header_bytes : &[u8;size_of::<Elf32Ehdr>()] =
@@ -33,9 +31,8 @@ impl Elf32 {
 
         let header = match Elf32Ehdr::from_bytes(header_bytes) {
             Ok(val) => val,
-            Err(e) => {
-                return Err(Error::HeaderParsingError);
-            }
+            Err(_) => return Err(Error::HeaderParsingError),
+            
         };
         let sht = Elf32Sht::new(header.e_shnum());
         let pht = Elf32Pht::new(header.e_phnum());
@@ -49,7 +46,7 @@ impl Elf32 {
     fn calc_section_header_offset(&self,idx:usize) 
         -> Result<Elf32Off,Error>{
         let e_shnum = self.header.e_shnum();
-        if idx >  u16::from(e_shnum) as usize{
+        if idx >=  u16::from(e_shnum) as usize{
             return Err(Error::IndexOutOfBoundsError);
         }
         let sh_offset = self.header.
@@ -79,7 +76,7 @@ impl Elf32 {
                 Elf32Shdr::from_bytes
                 (section_header_bytes,self.endianness()){
                     Ok(value) => value,
-                    Err(e) => {
+                    Err(_) => {
                         return Err(Error::SectionHeaderConstructionError);
                     }
 
@@ -97,10 +94,10 @@ impl Elf32 {
             Ok(value) => value,
             Err(_) => return Err(Error::SectionHeaderRetrievalError),
         } ;
-        let section_offset = u32::from(header.section_offset()) as usize;
-        let section_size  = u32::from(header.section_size()) as usize;
+        let sh_offset = u32::from(header.sh_offset()) as usize;
+        let sh_size  = u32::from(header.sh_size()) as usize;
         let raw_bytes : &[u8] = 
-        &self.raw_bytes[section_offset..section_offset+section_size];
+        &self.raw_bytes[sh_offset..sh_offset+sh_size];
         Ok(Elf32Section::new(raw_bytes,header,self.endianness()))
     }
 
@@ -109,7 +106,7 @@ impl Elf32 {
         Result<Elf32Off,Error>
     {
         let e_phnum = self.header.e_phnum();
-        if idx >  u16::from(e_phnum) as usize{
+        if idx >=  u16::from(e_phnum) as usize{
             return Err(Error::IndexOutOfBoundsError);
         }
         let ph_offset = 
@@ -156,10 +153,10 @@ impl Elf32 {
             Ok(value) => value,
             Err(_) => return Err(Error::ProgramHeaderRetrievalError),
         } ;
-        let section_offset = u32::from(header.p_offset()) as usize;
-        let section_size  = u32::from(header.p_filesz()) as usize;
+        let sh_offset = u32::from(header.p_offset()) as usize;
+        let sh_size  = u32::from(header.p_filesz()) as usize;
         let raw_bytes : &[u8] = 
-        &self.raw_bytes[section_offset..section_offset+section_size];
+        &self.raw_bytes[sh_offset..sh_offset+sh_size];
         Ok(Elf32Segment::new(raw_bytes,header))
     }
 }

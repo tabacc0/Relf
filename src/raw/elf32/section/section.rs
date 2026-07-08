@@ -17,39 +17,39 @@ impl<'a> Elf32Section<'a>{
         -> Self{
         Self{raw_bytes,header,endianness}
     }
-    pub fn raw_byte(&self) -> &'a[u8] {
-        &self.raw_bytes
+    pub fn raw_bytes(&self) -> &'a[u8] {
+        self.raw_bytes
     }
     pub fn header(&self) -> &'a Elf32Shdr {
         &self.header
     }
     pub fn is_symtab(&self) -> bool {
-        self.header.section_type() == &SHT_SYMTAB ||
-            self.header.section_type() == &SHT_DYNSYM
+        self.header.sh_type() == SHT_SYMTAB ||
+            self.header.sh_type() == SHT_DYNSYM
     }
     pub fn is_strtab(&self) -> bool {
-        self.header.section_type() == &SHT_STRTAB
+        self.header.sh_type() == SHT_STRTAB
     }
     pub fn is_reltab(&self) -> bool {
-        self.header.section_type() == &SHT_REL
+        self.header.sh_type() == SHT_REL
     }
     pub fn is_relatab(&self) -> bool {
-        self.header.section_type() == &SHT_RELA
+        self.header.sh_type() == SHT_RELA
     }
     pub fn is_writable(&self) -> bool {
-        if u32::from(&(*self.header.section_flag() & SHF_WRITE)) == 0{
+        if u32::from(self.header.sh_flags() & SHF_WRITE) == 0{
             return false
         }
         true
     }
-    pub fn has_runtime_size(&self) -> bool {
-        if u32::from(&(*self.header.section_flag() & SHF_ALLOC)) == 0{
+    pub fn is_allocated(&self) -> bool {
+        if u32::from(self.header.sh_flags() & SHF_ALLOC) == 0{
             return false
         }
         true
     }
-    pub fn has_execinst(&self) -> bool {
-        if u32::from(&(*self.header.section_flag() & SHF_EXECINSTR)) == 0{
+    pub fn has_exec_instr(&self) -> bool {
+        if u32::from(self.header.sh_flags() & SHF_EXECINSTR) == 0{
             return false
         }
         true
@@ -60,10 +60,10 @@ impl<'a> Elf32Section<'a>{
     {
         let symbol_entry_size = size_of::<Elf32Sym>();
         let entries_number =
-            u32::from(self.header.section_size()) as usize /
+            u32::from(self.header.sh_size()) as usize /
             symbol_entry_size;
 
-        if idx > entries_number as usize{
+        if idx >= entries_number as usize{
             return Err(Error::IndexOutOfBoundsError);
         }
 
@@ -74,7 +74,7 @@ impl<'a> Elf32Section<'a>{
             return Err(Error::NotSymbolTable)
         }
         let symbol_offset = match self.calc_symbol_offset(idx){
-            Ok(value) => u32::from(&value) as usize,
+            Ok(value) => u32::from(value) as usize,
             Err(_) => return Err(Error::CalcOffsetError),
         };
         let symbol_bytes : &[u8;size_of::<Elf32Sym>()] = 
@@ -94,10 +94,10 @@ impl<'a> Elf32Section<'a>{
     {
         let rel_entry_size = size_of::<Elf32Rel>();
         let entries_number =
-            u32::from(self.header.section_size()) as usize /
+            u32::from(self.header.sh_size()) as usize /
             rel_entry_size;
 
-        if idx > entries_number as usize{
+        if idx >= entries_number as usize{
             return Err(Error::IndexOutOfBoundsError);
         }
 
@@ -109,7 +109,7 @@ impl<'a> Elf32Section<'a>{
             return Err(Error::NotRelTable)
         }
         let rel_offset = match self.calc_rel_offset(idx){
-            Ok(value) => u32::from(&value) as usize,
+            Ok(value) => u32::from(value) as usize,
             Err(_) => return Err(Error::CalcOffsetError),
         };
         let rel_bytes : &[u8;size_of::<Elf32Rel>()] = 
@@ -127,10 +127,10 @@ impl<'a> Elf32Section<'a>{
     {
         let rela_entry_size = size_of::<Elf32Rela>();
         let entries_number =
-            u32::from(self.header.section_size()) as usize /
+            u32::from(self.header.sh_size()) as usize /
             rela_entry_size;
 
-        if idx > entries_number as usize{
+        if idx >= entries_number as usize{
             return Err(Error::IndexOutOfBoundsError);
         }
 
@@ -142,7 +142,7 @@ impl<'a> Elf32Section<'a>{
             return Err(Error::NotRelaTable)//lol def not
         }
         let rela_offset = match self.calc_rela_offset(idx){
-            Ok(value) => u32::from(&value) as usize,
+            Ok(value) => u32::from(value) as usize,
             Err(_) => return Err(Error::CalcOffsetError),
         };
         let rela_bytes : &[u8;size_of::<Elf32Rela>()] = 

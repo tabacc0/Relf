@@ -59,12 +59,12 @@ impl Elf32Rel {
         &self.r_info
     }
     pub fn relocated_symbol_idx(&self) -> usize {
-        let r_info = u32::from(&self.r_info);
+        let r_info = u32::from(self.r_info);
         let r_sym = (r_info >> 8) as usize;
         r_sym
     }
     pub fn rel_type(&self) -> usize {
-        let r_info = u32::from(&self.r_info);
+        let r_info = u32::from(self.r_info);
         let r_type = (r_info & 0xff) as usize;
         r_type
     }
@@ -92,22 +92,22 @@ impl Elf32Rela {
         Ok(Self{r_offset,r_info,r_addend})
     }
 
-    pub fn r_offset(&self) -> &Elf32Off {
-        &self.r_offset
+    pub fn r_offset(&self) -> Elf32Off {
+        self.r_offset
     }
-    pub fn r_info(&self) -> &Elf32Word {
-        &self.r_info
+    pub fn r_info(&self) -> Elf32Word {
+        self.r_info
     }
-    pub fn r_addend(&self) -> &Elf32Sword {
-        &self.r_addend
+    pub fn r_addend(&self) -> Elf32Sword {
+        self.r_addend
     }
     pub fn relocated_symbol_idx(&self) -> usize {
-        let r_info = u32::from(&self.r_info);
+        let r_info = u32::from(self.r_info);
         let r_sym = (r_info >> 8) as usize;
         r_sym
     }
     pub fn rel_type(&self) -> usize {
-        let r_info = u32::from(&self.r_info);
+        let r_info = u32::from(self.r_info);
         let r_type = (r_info & 0xff) as usize;
         r_type
     }

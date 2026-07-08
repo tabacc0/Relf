@@ -155,23 +155,23 @@ impl Elf32Sym {
 
     }
 
-    pub fn st_name(&self) -> &Elf32Word {
-        &self.st_name
+    pub fn st_name(&self) -> Elf32Word {
+        self.st_name
     }
-    pub fn st_value(&self) -> &Elf32Addr {
-        &self.st_value
+    pub fn st_value(&self) -> Elf32Addr {
+        self.st_value
     }
-    pub fn st_size(&self) -> &Elf32Word {
-        &self.st_size
+    pub fn st_size(&self) -> Elf32Word {
+        self.st_size
     }
-    pub fn st_info(&self) -> &u8 {
-        &self.st_info
+    pub fn st_info(&self) -> u8 {
+        self.st_info
     }
-    pub fn st_other(&self) -> &u8 {
-        &self.st_other
+    pub fn st_other(&self) -> u8 {
+        self.st_other
     }
-    pub fn st_shndx(&self) -> &Elf32Half {
-        &self.st_shndx
+    pub fn st_shndx(&self) -> Elf32Half {
+        self.st_shndx
     }
 
     pub fn st_type(&self) -> u8 {

@@ -51,7 +51,7 @@ pub const VALID_PT : &[Elf32Word] = &[
 pub const PF_X : Elf32Word = Elf32Word{value:1};//this segment is executable
 pub const PF_W : Elf32Word = Elf32Word{value:2};//writable at runtime
 pub const PF_R : Elf32Word = Elf32Word{value:4};//readable at runtime
-//mask bit for os-specific semantics
+                                                //mask bit for os-specific semantics
 pub const PF_MASKOS : Elf32Word = Elf32Word{value:0x0ff00000};
 //mask bit for cpu-specific semantics
 pub const PF_MASKPROC : Elf32Word = Elf32Word{value:0xf0000000};
@@ -83,108 +83,90 @@ impl Elf32Phdr {
     pub fn from_bytes(raw_bytes : &[u8;size_of::<Elf32Phdr>()],endianness:u8) 
         -> Result<Self,Error> {
 
-        let p_type = 
-            match Elf32Word::from_bytes(&raw_bytes[0..4],endianness){
-                Ok(value) => {
-                    if !VALID_PT.contains(&value) && 
-                        (value < PT_LOPROC || value > PT_HIPROC)
-                    {
-                        return Err(Error::InvalidFieldValue);
-                }
-                value
-            },
-            Err(e) => return Err(Error::FieldBuildingError),
+            let p_type = 
+        match Elf32Word::from_bytes(&raw_bytes[0..4],endianness){
+                Ok(value) => value,
+            Err(_) => return Err(Error::FieldBuildingError),
         };
 
-        let p_offset = 
-            match Elf32Off::from_bytes(&raw_bytes[4..8],endianness){
-                Ok(value) => value,
-                Err(e) => return Err(Error::FieldBuildingError),
-            };
-
-        let p_vaddr = 
-            match Elf32Addr::from_bytes(&raw_bytes[8..12],endianness){
-                Ok(value) => value,
-                Err(e) => return Err(Error::FieldBuildingError),
-            };
-
-        let p_paddr = 
-            match Elf32Addr::from_bytes(&raw_bytes[12..16],endianness){
-                Ok(value) => value,
-                Err(e) => return Err(Error::FieldBuildingError),
-            };
-
-        let p_filesz = 
-            match Elf32Word::from_bytes(&raw_bytes[16..20],endianness){
-                Ok(value) => value,
-                Err(e) => return Err(Error::FieldBuildingError),
-            };
-
-        let p_memsz = 
-            match Elf32Word::from_bytes(&raw_bytes[20..24],endianness){
-                Ok(value) => {
-                    if value < p_filesz {
-                        return Err(Error::InvalidSegmentMemSz);
-                    }
-                    value
-            },
-            Err(e) => return Err(Error::FieldBuildingError),
+    let p_offset = 
+        match Elf32Off::from_bytes(&raw_bytes[4..8],endianness){
+            Ok(value) => value,
+            Err(_) => return Err(Error::FieldBuildingError),
         };
 
-        let p_flags = 
-            match Elf32Word::from_bytes(&raw_bytes[24..28],endianness){
-                Ok(value) => value,
-                Err(e) => return Err(Error::FieldBuildingError),
-            };
+    let p_vaddr = 
+        match Elf32Addr::from_bytes(&raw_bytes[8..12],endianness){
+            Ok(value) => value,
+            Err(_) => return Err(Error::FieldBuildingError),
+        };
 
-        let p_align = 
-            match Elf32Word::from_bytes(&raw_bytes[28..32],endianness){
-                Ok(value) => {
-                    //making sure alignment is sane
-                    if u32::from(&value) != 1 && u32::from(&value) % 2 != 0{//
-                        return Err(Error::InvalidFieldValue);
-                    }
-                value
-            }
-            Err(e) => return Err(Error::FieldBuildingError),
+    let p_paddr = 
+        match Elf32Addr::from_bytes(&raw_bytes[12..16],endianness){
+            Ok(value) => value,
+            Err(_) => return Err(Error::FieldBuildingError),
+        };
+
+    let p_filesz = 
+        match Elf32Word::from_bytes(&raw_bytes[16..20],endianness){
+            Ok(value) => value,
+            Err(_) => return Err(Error::FieldBuildingError),
+        };
+
+    let p_memsz = 
+        match Elf32Word::from_bytes(&raw_bytes[20..24],endianness){
+            Ok(value) => value,
+            Err(_) => return Err(Error::FieldBuildingError),
+        };
+
+    let p_flags = 
+        match Elf32Word::from_bytes(&raw_bytes[24..28],endianness){
+            Ok(value) => value,
+            Err(_) => return Err(Error::FieldBuildingError),
+        };
+
+    let p_align = 
+        match Elf32Word::from_bytes(&raw_bytes[28..32],endianness){
+            Ok(value) => value,
+            Err(_) => return Err(Error::FieldBuildingError),
         };
 
 
-        Ok(Self {
-            p_type , 
-            p_offset , 
-            p_vaddr , 
-            p_paddr,
-            p_filesz , 
-            p_memsz , 
-            p_flags , 
-            p_align,
-        })
-    }
+    Ok(Self {
+        p_type , 
+        p_offset , 
+        p_vaddr , 
+        p_paddr,
+        p_filesz , 
+        p_memsz , 
+        p_flags , 
+        p_align,
+    })
+}
 
-    pub fn p_type(&self) -> &Elf32Word {
-        &self.p_type
-    }
-    pub fn p_offset(&self) -> &Elf32Off {
-        &self.p_offset
-    }
-    pub fn p_vaddr(&self) -> &Elf32Addr {
-        &self.p_vaddr
-    }
-    pub fn p_paddr(&self) -> &Elf32Addr {
-        &self.p_paddr
-    }
-    pub fn p_filesz(&self) -> &Elf32Word {
-        &self.p_filesz
-    }
-    pub fn p_memsz(&self) -> &Elf32Word {
-        &self.p_memsz
-    }
-    pub fn p_flags(&self) -> &Elf32Word {
-        &self.p_flags
-    }
-    pub fn p_align(&self) -> &Elf32Word {
-        &self.p_align
-    }
+pub fn p_type(&self) -> Elf32Word {
+    self.p_type
+}
+pub fn p_offset(&self) -> Elf32Off {
+    self.p_offset
+}
+pub fn p_vaddr(&self) -> Elf32Addr {
+    self.p_vaddr
+}
+pub fn p_paddr(&self) -> Elf32Addr {
+    self.p_paddr
+}
+pub fn p_filesz(&self) -> Elf32Word {
+    self.p_filesz
+}
+pub fn p_memsz(&self) -> Elf32Word {
+    self.p_memsz
+}
+pub fn p_flags(&self) -> Elf32Word {
+    self.p_flags
+}
+pub fn p_align(&self) -> Elf32Word {
+    self.p_align
+}
 
 }

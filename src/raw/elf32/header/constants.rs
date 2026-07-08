@@ -271,7 +271,7 @@ pub const VALID_EM : &[Elf32Half] = &[
 
 // values for e_version :
 pub const EV_NONE : Elf32Word = Elf32Word{value:0}; //invalid version
-pub const EV_CURRENT : Elf32Word = Elf32Word{value:1}; //invalid version
+pub const EV_CURRENT : Elf32Word = Elf32Word{value:1}; 
 
 pub const VALID_EV : &[Elf32Word] = &[
     EV_NONE ,
@@ -313,6 +313,26 @@ pub const VALID_EI_DATA : &[u8] = &[
     ELFDATA2LSB,
     ELFDATA2MSB,
 ];
+
+//values of e_ident[EI_OSABI] and their signigication
+//
+pub const ELFOSABI_NONE : u8 = 0 ;//no extensions or unspecified
+pub const ELFOSABI_HPUX : u8 = 1 ;//Hewlett-Packard HP_UX
+pub const ELFOSABI_NETBSD : u8 = 2 ;//NetBSD
+pub const ELFOSABI_LINUX : u8 = 3 ;//Linux
+pub const ELFOSABI_SOLARIS : u8 = 6 ;//Sun Solaris
+pub const ELFOSABI_AIX : u8 = 7 ;//AIX
+pub const ELFOSABI_IRIX : u8 = 8 ;//IRIX
+pub const ELFOSABI_FREEBSD : u8 = 9 ;//FreeBSD
+pub const ELFOSABI_TRU64 : u8 = 10 ;//Compaq TRU64 UNIX
+pub const ELFOSABI_MODESTO : u8 = 11 ;//Novel Modesto
+pub const ELFOSABI_OPENBSD : u8 = 12 ;//Open BSD
+pub const ELFOSABI_OPENVMS : u8 = 13 ;//Open VMS
+pub const ELFOSABI_NSK : u8 = 14 ;//Hewlett-Packard Non-Stop-Kernel
+//from 64 to 255 is architecture specific
+
+
+
 
 //size of the e_ident table
 pub const EI_NIDENT : u8 = 16;

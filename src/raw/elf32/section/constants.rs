@@ -64,7 +64,11 @@ pub const VALID_SHT : &[Elf32Word] = &[
     SHT_NOBITS ,
     SHT_REL ,
     SHT_SHLIB ,
-    SHT_DYNSYM ,
+    SHT_INIT_ARRAY,
+    SHT_FINI_ARRAY,
+    SHT_PREINIT_ARRAY,
+    SHT_GROUP,
+    SHT_SYMTAB_SHNDX,
 ];
 
 //these two specify a range reserved for operating system specific semantics
@@ -89,7 +93,7 @@ pub const SHF_ALLOC : Elf32Word = Elf32Word{value:2} ;//0b10
 pub const SHF_EXECINSTR : Elf32Word = Elf32Word{value:4} ;//0b100
 //section is to be merged to eliminate duplication
 //the size of each element is uniform and defined by the header's
-//sh_entsize EXCEPT if the HSF_STRINGS flag is also set , then
+//sh_entsize EXCEPT if the SHF_STRINGS flag is also set , then
 //the elements are null terminated strings and the size of a 
 //character is specified by sh_entsize
 pub const SHF_MERGE : Elf32Word = Elf32Word{value:0x10} ;

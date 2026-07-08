@@ -10,12 +10,12 @@ pub struct Elf32Pht {
 }
 impl Elf32Pht {
     pub fn get_ph(&self,idx : usize) -> Result<&OnceCell<Elf32Phdr>,Error>{
-        if idx > (self.e_phnum - 1) {
+        if idx > self.e_phnum {
             return Err(Error::IndexOutOfBoundsError);
         }
         Ok(&self.pht[idx])
     }
-    pub fn new(e_phnum :&Elf32Half) -> Self{
+    pub fn new(e_phnum :Elf32Half) -> Self{
         let e_phnum : usize = u16::from(e_phnum) as usize;
         let mut pht :  Vec<OnceCell<Elf32Phdr>> =  Vec::new();
         for i in 0..e_phnum {

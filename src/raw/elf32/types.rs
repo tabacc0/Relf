@@ -11,9 +11,8 @@ impl Elf32Addr {
         -> Result<Self,Error> {
         let raw_bytes : [u8;4] = match raw_bytes.try_into() {
             Ok(value) => value,
-            Err(e) => return Err(Error::ByteParsingError),
-        };
-        if endianness == ELFDATA2LSB {
+            Err(_) => return Err(Error::ByteParsingError),
+        }; if endianness == ELFDATA2LSB {
             Ok(Self {value : u32::from_le_bytes(raw_bytes)})
         }else if endianness == ELFDATA2MSB {
             Ok(Self {value : u32::from_be_bytes(raw_bytes)})
@@ -44,8 +43,8 @@ impl From<u32> for Elf32Addr {
     }
 }
 
-impl From<&Elf32Addr> for u32 {
-    fn from(v : &Elf32Addr) -> Self{
+impl From<Elf32Addr> for u32 {
+    fn from(v : Elf32Addr) -> Self{
         v.value
     }
 }
@@ -61,7 +60,7 @@ impl Elf32Half {
         -> Result<Self,Error> {
         let raw_bytes : [u8;2] = match raw_bytes.try_into(){
             Ok(value) => value,
-            Err(e) => return Err(Error::ByteParsingError),
+            Err(_) => return Err(Error::ByteParsingError),
         };
         if endianness == ELFDATA2LSB {
             Ok(Self {value : u16::from_le_bytes(raw_bytes)})
@@ -93,8 +92,8 @@ impl From<u16> for Elf32Half {
     }
 }
 
-impl From<&Elf32Half> for u16 {
-    fn from(v : &Elf32Half) -> Self{
+impl From<Elf32Half> for u16 {
+    fn from(v : Elf32Half) -> Self{
         v.value
     }
 }
@@ -110,7 +109,7 @@ impl Elf32Off {
         -> Result<Self,Error> {
         let raw_bytes : [u8;4] = match raw_bytes.try_into(){
             Ok(value) => value,
-            Err(e) => return Err(Error::ByteParsingError),
+            Err(_) => return Err(Error::ByteParsingError),
         };
 
         if endianness == ELFDATA2LSB {
@@ -144,8 +143,8 @@ impl From<u32> for Elf32Off {
     }
 }
 
-impl From<&Elf32Off> for u32 {
-    fn from(v : &Elf32Off) -> Self{
+impl From<Elf32Off> for u32 {
+    fn from(v : Elf32Off) -> Self{
         v.value
     }
 }
@@ -161,7 +160,7 @@ impl Elf32Sword {
         -> Result<Self,Error> {
         let raw_bytes : [u8;4] = match raw_bytes.try_into(){
             Ok(value) => value,
-            Err(e) => return Err(Error::ByteParsingError),
+            Err(_) => return Err(Error::ByteParsingError),
         };
 
         if endianness == ELFDATA2LSB {
@@ -194,8 +193,8 @@ impl From<i32> for Elf32Sword {
     }
 }
 
-impl From<&Elf32Sword> for i32 {
-    fn from(v : &Elf32Sword) -> Self{
+impl From<Elf32Sword> for i32 {
+    fn from(v : Elf32Sword) -> Self{
         v.value
     }
 }
@@ -208,7 +207,7 @@ impl Elf32Word {
         -> Result<Self,Error> {
         let raw_bytes : [u8;4] = match raw_bytes.try_into(){
             Ok(value) => value,
-            Err(e) => return Err(Error::ByteParsingError),
+            Err(_) => return Err(Error::ByteParsingError),
         };
 
         if endianness == ELFDATA2LSB {
@@ -241,8 +240,8 @@ impl From<u32> for Elf32Word {
     }
 }
 
-impl From<&Elf32Word> for u32 {
-    fn from(v : &Elf32Word) -> Self{
+impl From<Elf32Word> for u32 {
+    fn from(v : Elf32Word) -> Self{
         v.value
     }
 }
