@@ -1,5 +1,7 @@
-
 use crate::raw::elf32::types::*;
+
+pub const ELF32SHDRSIZE : usize = 40;
+
 //values of sh_type and their signification
 //
 //marks the header as inactive , no associated section

@@ -1,4 +1,7 @@
 use crate::raw::elf32::types::*;
+
+pub const ELF32EHDRSIZE : usize = 52;
+
 // values for e_type
 pub const ET_NONE : Elf32Half = Elf32Half{value:0};
 pub const ET_REL : Elf32Half = Elf32Half{value:1};//Relocatable file

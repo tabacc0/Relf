@@ -113,8 +113,9 @@ pub struct Elf32Sym {
     st_shndx:Elf32Half,
 }
 
+pub const ELF32SYMSIZE : usize = 16;
 impl Elf32Sym {
-    pub fn from_bytes(raw_bytes : &[u8;size_of::<Elf32Sym>()],endianness:u8) 
+    pub fn from_bytes(raw_bytes : &[u8;ELF32SYMSIZE],endianness:u8) 
         -> Result<Self,Error>{
 
             let st_name = 

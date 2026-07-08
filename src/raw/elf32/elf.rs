@@ -8,6 +8,9 @@ use crate::raw::elf32::program::program_header_table::*;
 use crate::raw::elf32::section::section_header::*;
 use crate::raw::elf32::program::program_header::*;
 use crate::raw::elf32::error::*;
+use crate::raw::elf32::header::constants::*;
+use crate::raw::elf32::section::constants::*;
+use crate::raw::elf32::program::constants::*;
 
 #[derive(Debug)]
 pub struct Elf32 {
@@ -26,8 +29,8 @@ impl Elf32 {
             Err(_) => return Err(Error::FileReadError),
             Ok(f) => f,
         };
-        let header_bytes : &[u8;size_of::<Elf32Ehdr>()] =
-            &raw_bytes[0..size_of::<Elf32Ehdr>()].try_into().unwrap();
+        let header_bytes : &[u8;ELF32EHDRSIZE] =
+            &raw_bytes[0..ELF32EHDRSIZE].try_into().unwrap();
 
         let header = match Elf32Ehdr::from_bytes(header_bytes) {
             Ok(val) => val,
@@ -67,9 +70,9 @@ impl Elf32 {
                 };
 
 
-            let section_header_bytes : &[u8;size_of::<Elf32Shdr>()] = 
+            let section_header_bytes : &[u8;ELF32SHDRSIZE] = 
                 &self.raw_bytes
-                [sh_offset..sh_offset+size_of::<Elf32Shdr>()]
+                [sh_offset..sh_offset+ELF32SHDRSIZE]
                 .try_into().unwrap();
 
             let section_header = match 
@@ -127,9 +130,9 @@ impl Elf32 {
                 };
 
 
-            let program_header_bytes : &[u8;size_of::<Elf32Phdr>()] = 
+            let program_header_bytes : &[u8;ELF32PHDRSIZE] = 
                 &self.raw_bytes
-                [ph_offset..ph_offset+size_of::<Elf32Phdr>()]
+                [ph_offset..ph_offset+ELF32PHDRSIZE]
                 .try_into().unwrap();
 
             let program_header = match 

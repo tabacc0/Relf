@@ -1,5 +1,6 @@
 use crate::raw::elf32::types::*;
 use crate::raw::elf32::error::Error;
+use crate::raw::elf32::section::constants::*;
 
 #[derive(Debug)]
 #[repr(C)]
@@ -19,7 +20,7 @@ pub struct Elf32Shdr {
 
 
 impl Elf32Shdr {
-    pub fn from_bytes(raw_bytes:&[u8;size_of::<Self>()],endianness : u8)
+    pub fn from_bytes(raw_bytes:&[u8;ELF32SHDRSIZE],endianness : u8)
         -> Result<Self,Error>
     {
         let sh_name = 

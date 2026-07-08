@@ -4,29 +4,28 @@ fn main(){
         Ok(f) =>f,
         Err(_) => return (),
     };
-    let mut i : usize = 0;
-    let mut test_section = match elf_file.section(i) {
-        Ok(value) => value,
-        Err(_) => return (),
-    };
-    while !test_section.is_strtab(){
-        i = i+1;
-        test_section = match elf_file.section(i) {
-            Ok(value) =>  value,
-            Err(e) => continue,
-        };
-    }
+    let mut j : usize = 0;
 
 
-    let mut i : usize = 0;
     loop {
-        let test_str = match test_section.str(i) {
+        let mut test_section = match elf_file.section(j) {
             Ok(value) => value,
             Err(_) => return (),
         };
-        println!("{}",str::from_utf8(test_str).unwrap());
-        i += 1;
-    }
+        if test_section.is_strtab(){
+            let mut i : usize = 0;
+            loop {
+                let test_str = match test_section.str(i) {
+                    Ok(value) => value,
+                    Err(_) => return (),
+                };
+                println!("{}",str::from_utf8(test_str).unwrap());
+                i += 1;
+            }
+        }
 
+        j += 1;
+
+    }
     
 }

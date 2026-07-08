@@ -12,6 +12,7 @@ pub struct Elf32Section<'a> {
     endianness : u8,
 }
 
+
 impl<'a> Elf32Section<'a>{
     pub fn new(raw_bytes : &'a[u8] , header : &'a Elf32Shdr,endianness : u8)
         -> Self{
@@ -61,7 +62,7 @@ impl<'a> Elf32Section<'a>{
     fn calc_symbol_offset(&self,idx:usize) -> 
         Result<Elf32Off,Error>
     {
-        let symbol_entry_size = size_of::<Elf32Sym>();
+        let symbol_entry_size = ELF32SYMSIZE;
         let entries_number =
             u32::from(self.header.sh_size()) as usize /
             symbol_entry_size;
@@ -80,9 +81,9 @@ impl<'a> Elf32Section<'a>{
             Ok(value) => u32::from(value) as usize,
             Err(_) => return Err(Error::CalcOffsetError),
         };
-        let symbol_bytes : &[u8;size_of::<Elf32Sym>()] = 
+        let symbol_bytes : &[u8;ELF32SYMSIZE] = 
             self.raw_bytes
-            [symbol_offset..symbol_offset+size_of::<Elf32Sym>()]
+            [symbol_offset..symbol_offset+ELF32SYMSIZE]
             .try_into().unwrap();
         let symbol = 
             match Elf32Sym::from_bytes(symbol_bytes,self.endianness) {
@@ -95,16 +96,15 @@ impl<'a> Elf32Section<'a>{
     fn calc_rel_offset(&self,idx:usize) -> 
         Result<Elf32Off,Error>
     {
-        let rel_entry_size = size_of::<Elf32Rel>();
         let entries_number =
             u32::from(self.header.sh_size()) as usize /
-            rel_entry_size;
+            ELF32RELSIZE;
 
         if idx >= entries_number as usize{
             return Err(Error::IndexOutOfBoundsError);
         }
 
-        Ok(Elf32Off::from((idx*rel_entry_size) as u32))
+        Ok(Elf32Off::from((idx*ELF32RELSIZE) as u32))
     }
 
     pub fn rel(&self,idx:usize) -> Result<Elf32Rel,Error> {
@@ -115,9 +115,9 @@ impl<'a> Elf32Section<'a>{
             Ok(value) => u32::from(value) as usize,
             Err(_) => return Err(Error::CalcOffsetError),
         };
-        let rel_bytes : &[u8;size_of::<Elf32Rel>()] = 
+        let rel_bytes : &[u8;ELF32RELSIZE] = 
             self.raw_bytes
-            [rel_offset..rel_offset+size_of::<Elf32Rel>()]
+            [rel_offset..rel_offset+ELF32RELSIZE]
             .try_into().unwrap();
         let rel = match Elf32Rel::from_bytes(rel_bytes,self.endianness) {
             Ok(value) => value,
@@ -128,7 +128,7 @@ impl<'a> Elf32Section<'a>{
     fn calc_rela_offset(&self,idx:usize) -> 
         Result<Elf32Off,Error>
     {
-        let rela_entry_size = size_of::<Elf32Rela>();
+        let rela_entry_size = ELF32RELASIZE;
         let entries_number =
             u32::from(self.header.sh_size()) as usize /
             rela_entry_size;
@@ -148,9 +148,9 @@ impl<'a> Elf32Section<'a>{
             Ok(value) => u32::from(value) as usize,
             Err(_) => return Err(Error::CalcOffsetError),
         };
-        let rela_bytes : &[u8;size_of::<Elf32Rela>()] = 
+        let rela_bytes : &[u8;ELF32RELASIZE] = 
             self.raw_bytes
-            [rela_offset..rela_offset+size_of::<Elf32Rela>()]
+            [rela_offset..rela_offset+ELF32RELASIZE]
             .try_into().unwrap();
         let rela = 
             match Elf32Rela::from_bytes(rela_bytes,self.endianness) {

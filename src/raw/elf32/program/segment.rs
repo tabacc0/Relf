@@ -1,4 +1,5 @@
 use crate::raw::elf32::program::program_header::*;
+use crate::raw::elf32::program::constants::*;
 
 #[derive(Debug)]
 pub struct Elf32Segment<'a> {

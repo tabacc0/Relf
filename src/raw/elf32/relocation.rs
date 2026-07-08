@@ -15,6 +15,8 @@ use crate::raw::elf32::types::*;
  * the lower Byte of st_info hold ELF32_R_TYPE which indicates the type
  * of the relocation , the behavior here is processor specific
  * */
+pub const ELF32RELSIZE : usize = 8;
+pub const ELF32RELASIZE : usize = 12;
 
 #[derive(Debug)]
 pub struct Elf32Rel {
@@ -37,7 +39,7 @@ pub struct Elf32Rela {
 }
 
 impl Elf32Rel {
-    pub fn from_bytes(raw_bytes : &[u8;size_of::<Elf32Rel>()],endianness:u8)
+    pub fn from_bytes(raw_bytes : &[u8;ELF32RELSIZE],endianness:u8)
         -> Result<Self,Error> 
     {
         let r_offset = 
@@ -71,7 +73,7 @@ impl Elf32Rel {
 }
 
 impl Elf32Rela {
-    pub fn from_bytes(raw_bytes : &[u8;size_of::<Elf32Rela>()],endianness:u8)
+    pub fn from_bytes(raw_bytes : &[u8;ELF32RELASIZE],endianness:u8)
         -> Result<Self,Error> 
     {
         let r_offset = 

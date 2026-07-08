@@ -1,7 +1,7 @@
 use crate::raw::elf32::types::*;
 use crate::raw::elf32::error::*;
-use crate::raw::elf32::section::section_header::*;
-use crate::raw::elf32::program::program_header::*;
+use crate::raw::elf32::program::constants::*;
+use crate::raw::elf32::section::constants::*;
 pub mod constants;
 use constants::*;
 
@@ -37,7 +37,7 @@ pub struct Elf32Ehdr {
 }
 
 impl Elf32Ehdr {
-    pub fn from_bytes(raw_bytes:&[u8;size_of::<Elf32Ehdr>()])
+    pub fn from_bytes(raw_bytes:&[u8;ELF32EHDRSIZE])
         -> Result<Self,Error>
     {
         let mut e_ident : [u8;16] = [0;16];
@@ -129,7 +129,7 @@ impl Elf32Ehdr {
         let e_phentsize = 
             match Elf32Half::from_bytes(&raw_bytes[42..44],endianness){
                 Ok(value) => {
-                    if u16::from(value) as usize != size_of::<Elf32Phdr>(){
+                    if u16::from(value) as usize != ELF32PHDRSIZE{
                         return Err(Error::InvalidPhEntSize);
                     }
                     value
@@ -148,7 +148,7 @@ impl Elf32Ehdr {
         let e_shentsize = 
             match Elf32Half::from_bytes(&raw_bytes[46..48],endianness){
                 Ok(value) => {
-                    if u16::from(value) as usize != size_of::<Elf32Shdr>(){
+                    if u16::from(value) as usize != ELF32SHDRSIZE{
                         return Err(Error::InvalidShEntSize);
                     }
                     value
