@@ -23,6 +23,9 @@ impl<'a> Elf32Section<'a>{
     pub fn header(&self) -> &'a Elf32Shdr {
         &self.header
     }
+    pub fn size(&self) -> Elf32Word {
+        self.header.sh_size()
+    }
     pub fn is_symtab(&self) -> bool {
         self.header.sh_type() == SHT_SYMTAB ||
             self.header.sh_type() == SHT_DYNSYM
@@ -83,10 +86,10 @@ impl<'a> Elf32Section<'a>{
             .try_into().unwrap();
         let symbol = 
             match Elf32Sym::from_bytes(symbol_bytes,self.endianness) {
-                Ok(value) => Ok(value),
-                Err(_) => Err(Error::SymbolConstructionError)
+                Ok(value) => value,
+                Err(_) => return Err(Error::SymbolConstructionError)
             };
-        symbol
+        Ok(symbol)
     }
 
     fn calc_rel_offset(&self,idx:usize) -> 
@@ -117,10 +120,10 @@ impl<'a> Elf32Section<'a>{
             [rel_offset..rel_offset+size_of::<Elf32Rel>()]
             .try_into().unwrap();
         let rel = match Elf32Rel::from_bytes(rel_bytes,self.endianness) {
-            Ok(value) => Ok(value),
-            Err(_) => Err(Error::RelConstructionError)
+            Ok(value) => value,
+            Err(_) => return Err(Error::RelConstructionError)
         };
-        rel
+        Ok(rel)
     }
     fn calc_rela_offset(&self,idx:usize) -> 
         Result<Elf32Off,Error>
@@ -151,10 +154,33 @@ impl<'a> Elf32Section<'a>{
             .try_into().unwrap();
         let rela = 
             match Elf32Rela::from_bytes(rela_bytes,self.endianness) {
-                Ok(value) => Ok(value),
-                Err(_) => Err(Error::RelaConstructionError)
+                Ok(value) => value,
+                Err(_) => return Err(Error::RelaConstructionError)
             };
-        rela
+        Ok(rela)
+    }
+    pub fn str(&self,idx:usize) -> Result<&[u8],Error> {
+        if !self.is_strtab() {
+            return Err(Error::NotStringTable)
+        }
+        //number of bytes in the section
+        let table_size = u32::from(self.size()) as usize;
+        if idx >= table_size {
+            return Err(Error::IndexOutOfBoundsError);
+        }
+        let mut upper_bound = idx;
+        while upper_bound < table_size {
+            if self.raw_bytes[upper_bound] == 0 {
+                break;
+            }
+            else {
+                upper_bound += 1;
+            }
+        }
+
+        let string = &self.raw_bytes[idx..upper_bound];
+        Ok(string)
+
     }
 }
 

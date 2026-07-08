@@ -25,6 +25,7 @@ pub enum Error {
     NotRelaTable,
     RelConstructionError,
     RelaConstructionError,
+    NotStringTable,
 }
 
 impl fmt::Display for Error {
@@ -69,6 +70,7 @@ impl fmt::Display for Error {
                 write!(f,"RelConstructionError"),
             Self::RelaConstructionError => 
                 write!(f,"RelaConstructionError"),
+            Self::NotStringTable => write!(f,"NotStringTable"),
         }
     }
 }

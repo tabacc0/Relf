@@ -9,7 +9,7 @@ fn main(){
         Ok(value) => value,
         Err(_) => return (),
     };
-    while !test_section.is_reltab(){
+    while !test_section.is_strtab(){
         i = i+1;
         test_section = match elf_file.section(i) {
             Ok(value) =>  value,
@@ -18,12 +18,15 @@ fn main(){
     }
 
 
-    let test_rel = match test_section.rel(3) {
-       Ok(value) => value,
-       Err(_) => return (),
-    };
+    let mut i : usize = 0;
+    loop {
+        let test_str = match test_section.str(i) {
+            Ok(value) => value,
+            Err(_) => return (),
+        };
+        println!("{}",str::from_utf8(test_str).unwrap());
+        i += 1;
+    }
 
-    println!("{:#?}",test_rel);
-    println!("{}",test_rel.relocated_symbol_idx());
-    println!("{}",test_rel.rel_type());
+    
 }
