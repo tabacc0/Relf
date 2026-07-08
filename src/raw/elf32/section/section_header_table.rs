@@ -1,6 +1,7 @@
 use crate::raw::elf32::error::Error;
 use std::cell::OnceCell;
 use crate::raw::elf32::types::Elf32Half;
+use crate::raw::elf32::section::section_header::Elf32Shdr;
 
 //aside from normal indexing special indexes of this table
 //are used in the ELF spec to signify other things
@@ -37,17 +38,15 @@ pub const SHN_COMMON : Elf32Half = Elf32Half{value:0xfff2} ;
 pub const SHN_XINDEX : Elf32Half = Elf32Half{value:0xffff} ;
 //higher bound of reserved indexes
 pub const SHN_HIRESERVE : Elf32Half = Elf32Half{value:0xffff} ;
-use super::section_header::Elf32Shdr;
 #[derive(Debug)]
 #[repr(C)]
 pub struct Elf32Sht{
     sht : Vec<OnceCell<Elf32Shdr>>,
-    e_shnum : usize,
 }
 
 impl Elf32Sht{
     pub fn get_sh(&self,idx:usize) -> Result<&OnceCell<Elf32Shdr>,Error>{
-        if idx > (self.e_shnum - 1) {
+        if idx >= self.sht.len() {
             return Err(Error::IndexOutOfBoundsError);
         }
          Ok(&self.sht[idx])
@@ -58,6 +57,6 @@ impl Elf32Sht{
         for i in 0..e_shnum {
             sht.push(OnceCell::new());
         } 
-        Self {sht,e_shnum}
+        Self {sht}
     }
 }

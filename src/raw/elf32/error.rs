@@ -17,6 +17,7 @@ pub enum Error {
     CalcOffsetError,
     SectionHeaderRetrievalError,
     ProgramHeaderRetrievalError,
+    SectionRetrievalError,
     InvalidSegmentMemSz,
     NotTable,
     SymbolConstructionError,
@@ -26,6 +27,9 @@ pub enum Error {
     RelConstructionError,
     RelaConstructionError,
     NotStringTable,
+    SectionbuildingError,
+    SectionNameFetchingError,
+    SymbolNameFetchingError,
 }
 
 impl fmt::Display for Error {
@@ -53,6 +57,8 @@ impl fmt::Display for Error {
                 write!(f,"SectionHeaderRetrievalError"),
             Self::ProgramHeaderRetrievalError => 
                 write!(f,"ProgramHeaderRetrievalError"),
+            Self::SectionRetrievalError => 
+                write!(f,"SectionRetrievalError"),
 
             Self::InvalidSegmentMemSz => write!(f,"InvalidSegmentMemSz"),
 
@@ -71,6 +77,12 @@ impl fmt::Display for Error {
             Self::RelaConstructionError => 
                 write!(f,"RelaConstructionError"),
             Self::NotStringTable => write!(f,"NotStringTable"),
+            Self::SectionbuildingError => write!(f,"SectionbuildingError"),
+            Self::SectionNameFetchingError => 
+                write!(f,"SectionNameFetchingError"),
+            Self::SymbolNameFetchingError => 
+                write!(f,"SymbolNameFetchingError"),
+
         }
     }
 }

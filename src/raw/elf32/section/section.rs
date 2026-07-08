@@ -2,27 +2,43 @@ use crate::raw::elf32::relocation::*;
 use crate::raw::elf32::types::*;
 use crate::raw::elf32::error::*;
 use crate::raw::elf32::symbol::symbol_entry::*;
+use crate::raw::elf32::symbol::symbol::*;
 use crate::raw::elf32::section::section_header::*;
 use crate::raw::elf32::section::constants::*;
 
 #[derive(Debug)]
 pub struct Elf32Section<'a> {
     raw_bytes : &'a[u8],
+    name : &'a[u8],
     header : &'a Elf32Shdr,
+    //according to sh_link and sh_type (see ./constants.rs)
+    //this can be a string table if this section is a symtab
+    //or a  symbol table if this section is a relocation table
+    associated_section : Option<&'a Elf32Section<'a>>,
     endianness : u8,
 }
 
 
 impl<'a> Elf32Section<'a>{
-    pub fn new(raw_bytes : &'a[u8] , header : &'a Elf32Shdr,endianness : u8)
-        -> Self{
-        Self{raw_bytes,header,endianness}
+    pub fn new(raw_bytes : &'a[u8] ,
+        name : &'a[u8],
+        header : &'a Elf32Shdr,
+        associated_section : Option<&'a Elf32Section>,
+        endianness : u8) -> Self
+    {
+            Self{raw_bytes,name,header,associated_section,endianness}
     }
     pub fn raw_bytes(&self) -> &'a[u8] {
         self.raw_bytes
     }
+    pub fn name(&self) -> &'a[u8] {
+        self.name
+    }
     pub fn header(&self) -> &'a Elf32Shdr {
         &self.header
+    }
+    pub fn associated_section(&self) -> Option<&'a Elf32Section<'a>> {
+        self.associated_section
     }
     pub fn size(&self) -> Elf32Word {
         self.header.sh_size()
@@ -73,7 +89,7 @@ impl<'a> Elf32Section<'a>{
 
         Ok(Elf32Off::from((idx*symbol_entry_size) as u32))
     }
-    pub fn symbol(&self,idx:usize) -> Result<Elf32Sym,Error> {
+    pub fn symbol(&self,idx:usize) -> Result<Elf32Symbol,Error> {
         if !self.is_symtab() {
             return Err(Error::NotSymbolTable)
         }
@@ -85,11 +101,19 @@ impl<'a> Elf32Section<'a>{
             self.raw_bytes
             [symbol_offset..symbol_offset+ELF32SYMSIZE]
             .try_into().unwrap();
-        let symbol = 
+        let header = 
             match Elf32Sym::from_bytes(symbol_bytes,self.endianness) {
                 Ok(value) => value,
                 Err(_) => return Err(Error::SymbolConstructionError)
             };
+
+        let assoc_strtab = self.associated_section.unwrap();
+        let name_idx = u32::from(header.st_name()) as usize;
+        let name = match assoc_strtab.str(name_idx){
+            Ok(value) => value,
+            Err(_) => return Err(Error::SymbolNameFetchingError),
+        };
+        let symbol = Elf32Symbol::new(name,header);
         Ok(symbol)
     }
 
@@ -159,7 +183,7 @@ impl<'a> Elf32Section<'a>{
             };
         Ok(rela)
     }
-    pub fn str(&self,idx:usize) -> Result<&[u8],Error> {
+    pub fn str(&self,idx:usize) -> Result<&'a[u8],Error> {
         if !self.is_strtab() {
             return Err(Error::NotStringTable)
         }
@@ -178,7 +202,7 @@ impl<'a> Elf32Section<'a>{
             }
         }
 
-        let string = &self.raw_bytes[idx..upper_bound];
+        let string = &self.raw_bytes()[idx..upper_bound];
         Ok(string)
 
     }
