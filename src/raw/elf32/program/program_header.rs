@@ -26,9 +26,12 @@ pub struct Elf32Phdr {
 }
 
 impl Elf32Phdr {
-    pub fn from_bytes(raw_bytes : &[u8;ELF32PHDRSIZE],endianness:u8) 
+    pub fn from_bytes(raw_bytes : &[u8],endianness:u8) 
         -> Result<Self,Error> {
 
+        if raw_bytes.len() < ELF32PHDRSIZE {
+            return Err(Error::BufferTooShort);
+        }
             let p_type = 
         match Elf32Word::from_bytes(&raw_bytes[0..4],endianness){
                 Ok(value) => value,

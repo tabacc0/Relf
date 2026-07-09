@@ -37,9 +37,12 @@ pub struct Elf32Ehdr {
 }
 
 impl Elf32Ehdr {
-    pub fn from_bytes(raw_bytes:&[u8;ELF32EHDRSIZE])
+    pub fn from_bytes(raw_bytes:&[u8])
         -> Result<Self,Error>
     {
+        if raw_bytes.len() < ELF32EHDRSIZE {
+            return Err(Error::BufferTooShort);
+        }
         let mut e_ident : [u8;16] = [0;16];
             e_ident.copy_from_slice(&raw_bytes[0..16]);
         if  e_ident[EI_MAG0 as usize] != 0x7f||

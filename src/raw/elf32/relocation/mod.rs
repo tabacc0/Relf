@@ -1,5 +1,6 @@
 use crate::raw::elf32::error::Error;
 use crate::raw::elf32::types::*;
+pub mod relocation;
 
 
 /*interpretation of the contents of r_info : 
@@ -15,8 +16,7 @@ use crate::raw::elf32::types::*;
  * the lower Byte of st_info hold ELF32_R_TYPE which indicates the type
  * of the relocation , the behavior here is processor specific
  * */
-pub const ELF32RELSIZE : usize = 8;
-pub const ELF32RELASIZE : usize = 12;
+pub const ELF32RELSIZE : usize = 8; pub const ELF32RELASIZE : usize = 12;
 
 #[derive(Debug)]
 pub struct Elf32Rel {
@@ -39,9 +39,12 @@ pub struct Elf32Rela {
 }
 
 impl Elf32Rel {
-    pub fn from_bytes(raw_bytes : &[u8;ELF32RELSIZE],endianness:u8)
+    pub fn from_bytes(raw_bytes : &[u8],endianness:u8)
         -> Result<Self,Error> 
     {
+        if raw_bytes.len() < ELF32RELSIZE {
+            return Err(Error::BufferTooShort);
+        }
         let r_offset = 
             match Elf32Off::from_bytes(&raw_bytes[0..4],endianness){
                 Ok(value) => value,
@@ -73,9 +76,12 @@ impl Elf32Rel {
 }
 
 impl Elf32Rela {
-    pub fn from_bytes(raw_bytes : &[u8;ELF32RELASIZE],endianness:u8)
+    pub fn from_bytes(raw_bytes : &[u8],endianness:u8)
         -> Result<Self,Error> 
     {
+        if raw_bytes.len() < ELF32RELASIZE {
+            return Err(Error::BufferTooShort);
+        }
         let r_offset = 
             match Elf32Off::from_bytes(&raw_bytes[0..4],endianness){
                 Ok(value) => value,

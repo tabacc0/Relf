@@ -20,9 +20,12 @@ pub struct Elf32Shdr {
 
 
 impl Elf32Shdr {
-    pub fn from_bytes(raw_bytes:&[u8;ELF32SHDRSIZE],endianness : u8)
+    pub fn from_bytes(raw_bytes:&[u8],endianness : u8)
         -> Result<Self,Error>
     {
+        if raw_bytes.len() < ELF32SHDRSIZE {
+            return Err(Error::BufferTooShort);
+        }
         let sh_name = 
             match Elf32Word::from_bytes(&raw_bytes[0..4],endianness){
                 Ok(value) => value,

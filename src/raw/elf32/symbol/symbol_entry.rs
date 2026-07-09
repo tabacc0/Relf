@@ -115,9 +115,12 @@ pub struct Elf32Sym {
 
 pub const ELF32SYMSIZE : usize = 16;
 impl Elf32Sym {
-    pub fn from_bytes(raw_bytes : &[u8;ELF32SYMSIZE],endianness:u8) 
+    pub fn from_bytes(raw_bytes : &[u8],endianness:u8) 
         -> Result<Self,Error>{
 
+        if raw_bytes.len() < ELF32SYMSIZE {
+            return Err(Error::BufferTooShort);
+        }
             let st_name = 
                 match Elf32Word::from_bytes(&raw_bytes[0..4],endianness){
                     Ok(value) => value,

@@ -30,6 +30,13 @@ pub enum Error {
     SectionbuildingError,
     SectionNameFetchingError,
     SymbolNameFetchingError,
+    SymbolFetchingError,
+    RelFetchingError,
+    RelaFetchingError,
+    SymFetchingError,
+    BufferTooShort,
+    OnceCellFailureError,
+    NoAssociatedSectionError,
 }
 
 impl fmt::Display for Error {
@@ -82,6 +89,18 @@ impl fmt::Display for Error {
                 write!(f,"SectionNameFetchingError"),
             Self::SymbolNameFetchingError => 
                 write!(f,"SymbolNameFetchingError"),
+            Self::SymbolFetchingError => 
+                write!(f,"SymbolFetchingError"),
+            Self::SymFetchingError => 
+                write!(f,"SymFetchingError"),
+            Self::RelFetchingError => 
+                write!(f,"RelFetchingError"),
+            Self::RelaFetchingError => 
+                write!(f,"RelaFetchingError"),
+            Self::BufferTooShort => write!(f,"BufferTooShort"),
+            Self::OnceCellFailureError => write!(f,"OnceCellFailureError"),
+            Self::NoAssociatedSectionError => 
+                write!(f,"NoAssociatedSectionError"),
 
         }
     }

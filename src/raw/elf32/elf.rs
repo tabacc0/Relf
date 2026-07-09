@@ -27,10 +27,10 @@ impl<'a> Elf32<'a> {
     pub fn from_bytes(raw_bytes : &'a[u8]) 
         -> Result<Self,Error>
     {
-        let header_bytes : &[u8;ELF32EHDRSIZE] =
-            &raw_bytes[0..ELF32EHDRSIZE].try_into().unwrap();
-
-        let header = match Elf32Ehdr::from_bytes(header_bytes) {
+        if raw_bytes.len() < ELF32EHDRSIZE {
+            return Err(Error::BufferTooShort);
+        }
+        let header = match Elf32Ehdr::from_bytes(raw_bytes) {
             Ok(val) => val,
             Err(_) => return Err(Error::HeaderParsingError),
             
@@ -54,10 +54,13 @@ impl<'a> Elf32<'a> {
         if idx >=  u16::from(e_shnum) as usize{
             return Err(Error::IndexOutOfBoundsError);
         }
-        let sh_offset = self.header.
+        //offset of the section header table
+        let sht_offset = self.header.
             e_shoff().value as usize;
+        //lenght of an entry 
         let sh_entsize = self.header.e_shentsize().value as usize;
-        Ok(Elf32Off::from((sh_offset + idx*sh_entsize) as u32))
+        //offset + product
+        Ok(Elf32Off::from((sht_offset + idx*sh_entsize) as u32))
     }
 
     pub fn section_header(&self,idx:usize) -> Result<&Elf32Shdr,Error>{
@@ -72,13 +75,10 @@ impl<'a> Elf32<'a> {
                 };
 
 
-            let section_header_bytes : &[u8;ELF32SHDRSIZE] = 
-                &self.raw_bytes
-                [sh_offset..sh_offset+ELF32SHDRSIZE]
-                .try_into().unwrap();
+            let section_header_bytes = &self.raw_bytes [sh_offset..];
 
-            let section_header = match 
-                Elf32Shdr::from_bytes
+            let section_header = 
+                match Elf32Shdr::from_bytes
                 (section_header_bytes,self.endianness()){
                     Ok(value) => value,
                     Err(_) => {
@@ -87,10 +87,18 @@ impl<'a> Elf32<'a> {
 
                 };
             sh_cell.set(section_header);
-            return Ok(sh_cell.get().unwrap());
+            let sh = match sh_cell.get() {
+                Some(value) => value,
+                None => return Err(Error::OnceCellFailureError),
+            };
+            return Ok(sh);
         }
         else {
-            return Ok(sh_cell.get().unwrap());
+            let sh = match sh_cell.get() {
+                Some(value) => value,
+                None => return Err(Error::OnceCellFailureError),
+            };
+            return Ok(sh);
         }
     }
 
@@ -110,11 +118,14 @@ impl<'a> Elf32<'a> {
             let raw_bytes : &[u8] = 
                 &self.raw_bytes[sh_offset..sh_offset+sh_size];
             let name_idx = u32::from(header.sh_name()) as usize;
+            let mut name : &[u8] = &[];
+            let mut associated_section : Option<&Elf32Section>= None;
 
             //special treatment for the string table
             //that has the sections names 
             //bootstraping its name
             let shstrndx = u16::from(self.header.e_shstrndx()) as usize;
+
             if idx == shstrndx {
                 let table_size = sh_size ;
                 if name_idx >= table_size {
@@ -129,38 +140,18 @@ impl<'a> Elf32<'a> {
                         upper_bound += 1;
                     }
                 }
-
-                let name = &raw_bytes[name_idx..upper_bound];
-                let mut associated_section = None;
-                if 
-                sh_type == SHT_REL ||
-                sh_type == SHT_RELA ||
-                sh_type == SHT_DYNSYM ||
-                sh_type == SHT_SYMTAB ||
-                sh_type ==  SHT_GROUP
-            {
-                let sh_link  = u32::from(header.sh_link()) as usize;
-                associated_section = match self.section(sh_link){
-                    Ok(value) => Some(value),
+                name = &raw_bytes[name_idx..upper_bound];
+        }
+            else {
+                let strsh_section = match self.section(shstrndx){
+                    Ok(value) => value,
                     Err(_) => return Err(Error::SectionbuildingError)
                 };
+                name = match strsh_section.str(name_idx) {
+                    Ok(value) => value,
+                    Err(_) => return Err(Error::SectionNameFetchingError),
+                };
             }
-                let section = Elf32Section:: new(raw_bytes, name, header,
-                    associated_section, self.endianness());
-            section_cell.set(section);
-            return Ok(section_cell.get().unwrap());
-            
-        }
-        else {
-            let strsh_section = match self.section(shstrndx){
-                Ok(value) => value,
-                Err(_) => return Err(Error::SectionbuildingError)
-            };
-            let name = match strsh_section.str(name_idx) {
-                Ok(value) => value,
-                Err(_) => return Err(Error::SectionNameFetchingError),
-            };
-            let mut associated_section = None;
             if 
                 sh_type == SHT_REL ||
                     sh_type == SHT_RELA ||
@@ -174,14 +165,23 @@ impl<'a> Elf32<'a> {
                     Err(_) => return Err(Error::SectionbuildingError)
                 };
             }
+
             let section = Elf32Section:: new(raw_bytes, name, header,
                 associated_section, self.endianness());
             section_cell.set(section);
-            return Ok(section_cell.get().unwrap());
+            let section = match section_cell.get() {
+                Some(value) => value,
+                None => return Err(Error::OnceCellFailureError),
+            };
+            return Ok(section);
         }
-        }
+
         else {
-            return Ok(section_cell.get().unwrap());
+            let section = match section_cell.get() {
+                Some(value) => value,
+                None => return Err(Error::OnceCellFailureError),
+            };
+            return Ok(section);
         }
     }
 
@@ -211,10 +211,8 @@ impl<'a> Elf32<'a> {
                 };
 
 
-            let program_header_bytes : &[u8;ELF32PHDRSIZE] = 
-                &self.raw_bytes
-                [ph_offset..ph_offset+ELF32PHDRSIZE]
-                .try_into().unwrap();
+            let program_header_bytes : &[u8] = &self.raw_bytes
+                [ph_offset..];
 
             let program_header = match 
                 Elf32Phdr::from_bytes
@@ -224,10 +222,18 @@ impl<'a> Elf32<'a> {
                         return Err(Error::ProgramHeaderConstructionError),
                 };
             ph_cell.set(program_header);
-            return Ok(ph_cell.get().unwrap());
+            let ph = match ph_cell.get() {
+                Some(value) => value,
+                None => return Err(Error::OnceCellFailureError),
+            };
+            return Ok(ph);
         }
         else {
-            return Ok(ph_cell.get().unwrap());
+            let ph = match ph_cell.get() {
+                Some(value) => value,
+                None => return Err(Error::OnceCellFailureError),
+            };
+            return Ok(ph);
         }
     }
 
