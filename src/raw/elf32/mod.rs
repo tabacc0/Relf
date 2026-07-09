@@ -1,8 +1,8 @@
 pub mod elf;
+pub mod error;
 pub mod header;
-pub mod types;
+pub mod program;
+pub mod relocation;
 pub mod section;
 pub mod symbol;
-pub mod relocation;
-pub mod program;
-pub mod error;
+pub mod types;
