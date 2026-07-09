@@ -118,8 +118,9 @@ impl<'a> Elf32<'a> {
             let raw_bytes : &[u8] = 
                 &self.raw_bytes[sh_offset..sh_offset+sh_size];
             let name_idx = u32::from(header.sh_name()) as usize;
-            let mut name : &[u8] = &[];
-            let mut associated_section : Option<&Elf32Section>= None;
+            let mut name : &[u8] ;
+            let mut link_section : Option<&Elf32Section>= None;
+            let mut info_section : Option<&Elf32Section>= None;
 
             //special treatment for the string table
             //that has the sections names 
@@ -153,21 +154,34 @@ impl<'a> Elf32<'a> {
                 };
             }
             if 
-                sh_type == SHT_REL ||
-                    sh_type == SHT_RELA ||
-                    sh_type == SHT_DYNSYM ||
-                    sh_type == SHT_SYMTAB ||
-                    sh_type ==  SHT_GROUP
+                sh_type == SHT_REL   ||
+                sh_type == SHT_RELA  ||
+                sh_type == SHT_DYNSYM||
+                sh_type == SHT_SYMTAB||
+                sh_type ==  SHT_GROUP||
+                sh_type ==  SHT_DYNAMIC||
+                sh_type ==  SHT_HASH
             {
                 let sh_link  = u32::from(header.sh_link()) as usize;
-                associated_section = match self.section(sh_link){
+                link_section = match self.section(sh_link){
+                    Ok(value) => Some(value),
+                    Err(_) => return Err(Error::SectionbuildingError)
+                };
+            }
+            if 
+                sh_type == SHT_REL   ||
+                sh_type == SHT_RELA  ||
+                sh_type ==  SHT_GROUP
+            {
+                let sh_info  = u32::from(header.sh_info()) as usize;
+                info_section = match self.section(sh_info){
                     Ok(value) => Some(value),
                     Err(_) => return Err(Error::SectionbuildingError)
                 };
             }
 
             let section = Elf32Section:: new(raw_bytes, name, header,
-                associated_section, self.endianness());
+                link_section,info_section,self.endianness());
             section_cell.set(section);
             let section = match section_cell.get() {
                 Some(value) => value,

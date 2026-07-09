@@ -57,11 +57,11 @@ impl Elf32Rel {
             };
         Ok(Self{r_offset,r_info})
     }
-    pub fn r_offset(&self) -> &Elf32Off {
-        &self.r_offset
+    pub fn r_offset(&self) -> Elf32Off {
+        self.r_offset
     }
-    pub fn r_info(&self) -> &Elf32Word {
-        &self.r_info
+    pub fn r_info(&self) -> Elf32Word {
+        self.r_info
     }
     pub fn relocated_symbol_idx(&self) -> usize {
         let r_info = u32::from(self.r_info);

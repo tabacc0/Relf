@@ -1,4 +1,5 @@
 use std::ops::Not;
+use std::ops::Div;
 use std::ops::BitAnd;
 use crate::raw::elf32::error::*;
 use crate::raw::elf32::header::constants::*;
@@ -232,6 +233,12 @@ impl BitAnd for Elf32Word{
     type Output = Elf32Word;
     fn bitand(self,other:Self) -> Self{
         Self{value:(self.value & other.value)}
+    }
+}
+impl Div for Elf32Word{
+    type Output = Elf32Word;
+    fn div(self,other:Self) -> Self{
+        Self{value:(self.value / other.value)}
     }
 }
 impl From<u32> for Elf32Word {

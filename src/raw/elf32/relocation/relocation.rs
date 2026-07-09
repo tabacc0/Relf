@@ -24,6 +24,31 @@ impl<'a> Elf32Relocation<'a> {
         symbol_table : &'a Elf32Section) -> Self {
         Self{header,symbol_table}
     }
+    pub fn offset(&self) -> u32 {
+        match &self.header {
+            Elf32RelocationHeader::Rel(header) => 
+                return u32::from(header.r_offset()),
+            Elf32RelocationHeader::Rela(header) => 
+                return u32::from(header.r_offset()),
+        }
+                    
+    }
+    pub fn info(&self) -> u32 {
+        match &self.header {
+            Elf32RelocationHeader::Rel(header) => 
+                return u32::from(header.r_info()),
+            Elf32RelocationHeader::Rela(header) => 
+                return u32::from(header.r_info()),
+        }
+    }
+    pub fn addend(&self) -> Option<i32> {
+        match &self.header {
+            Elf32RelocationHeader::Rel(header) => 
+                return None,
+            Elf32RelocationHeader::Rela(header) => 
+                return Some(i32::from(header.r_addend())),
+        }
+    }
     pub fn symbol(&self) -> Result<Elf32Symbol,Error>{
         match &self.header {
             Elf32RelocationHeader::Rel(header) => {

@@ -11,11 +11,37 @@ impl<'a> Elf32Segment<'a>{
     pub fn new(raw_bytes : &'a[u8] , header : &'a Elf32Phdr) -> Self{
         Self{raw_bytes,header}
     }
-    pub fn raw_byte(&self) -> &'a[u8] {
-        &self.raw_bytes
+    pub fn raw_bytes(&self) -> &'a[u8] {
+        self.raw_bytes
     }
     pub fn header(&self) -> &'a Elf32Phdr {
-        &self.header
+        self.header
+    }
+
+
+    pub fn segment_type(&self)-> u32 {
+        u32::from(self.header.p_type())
+    }
+    pub fn offset(&self)-> u32 {
+        u32::from(self.header.p_offset())
+    }
+    pub fn v_address(&self)-> u32 {
+        u32::from(self.header.p_vaddr())
+    }
+    pub fn p_address(&self)-> u32 {
+        u32::from(self.header.p_paddr())
+    }
+    pub fn file_size(&self)-> u32 {
+        u32::from(self.header.p_filesz())
+    }
+    pub fn memory_size(&self)-> u32 {
+        u32::from(self.header.p_memsz())
+    }
+    pub fn flags(&self)-> u32 {
+        u32::from(self.header.p_flags())
+    }
+    pub fn alignement(&self)-> u32 {
+        u32::from(self.header.p_align())
     }
 
     pub fn is_executable(&self) -> bool{
