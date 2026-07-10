@@ -10,6 +10,7 @@ use crate::raw::elf32::section::section_header::*;
 use crate::raw::elf32::section::section_header_table::*;
 use crate::raw::elf32::section::section_table::*;
 use crate::raw::elf32::types::*;
+use crate::raw::elf32::symbol::symbol::Elf32Symbol;
 
 #[derive(Debug)]
 pub struct Elf32<'a> {
@@ -17,15 +18,14 @@ pub struct Elf32<'a> {
     header: Elf32Ehdr,
     sht: Elf32Sht,
     pht: Elf32Pht,
-    //section_table
+    //table of section abstraction
     st: Elf32SectionTable<'a>,
 }
 
 impl<'a> Elf32<'a> {
     pub fn from_bytes(raw_bytes: &'a [u8]) -> Result<Self, Error> {
         if raw_bytes.len() < ELF32EHDRSIZE {
-            return Err(Error::BufferTooShort);
-        }
+            return Err(Error::BufferTooShort); }
         let header = match Elf32Ehdr::from_bytes(raw_bytes) {
             Ok(val) => val,
             Err(_) => return Err(Error::HeaderParsingError),
@@ -52,7 +52,7 @@ impl<'a> Elf32<'a> {
     }
 
 
-    fn calc_section_header_offset(
+    fn calc_shdr_offset(
         &self,
         idx: usize,
     ) -> Result<Elf32Off, Error> {
@@ -68,21 +68,21 @@ impl<'a> Elf32<'a> {
         Ok(Elf32Off::from((sht_offset + idx * sh_entsize) as u32))
     }
 
-    pub fn section_header(&self, idx: usize) -> Result<&Elf32Shdr, Error> {
+    pub fn shdr(&self, idx: usize) -> Result<&Elf32Shdr, Error> {
         let sh_cell = match self.sht.get_sh(idx) {
             Ok(value) => value,
             Err(_) => return Err(Error::SectionHeaderRetrievalError),
         };
         if sh_cell.get().is_none() {
-            let sh_offset = match self.calc_section_header_offset(idx) {
+            let sh_offset = match self.calc_shdr_offset(idx) {
                 Ok(off) => off.value as usize,
                 Err(_) => return Err(Error::CalcOffsetError),
             };
 
-            let section_header_bytes = &self.raw_bytes[sh_offset..];
+            let shdr_bytes = &self.raw_bytes[sh_offset..];
 
-            let section_header = match Elf32Shdr::from_bytes(
-                section_header_bytes,
+            let shdr = match Elf32Shdr::from_bytes(
+                shdr_bytes,
                 self.endianness(),
             ) {
                 Ok(value) => value,
@@ -90,7 +90,7 @@ impl<'a> Elf32<'a> {
                     return Err(Error::SectionHeaderConstructionError);
                 }
             };
-            match sh_cell.set(section_header) {
+            match sh_cell.set(shdr) {
                 Ok(_) => (),
                 Err(_) => return Err(Error::OnceCellFailureError),
             };
@@ -110,7 +110,7 @@ impl<'a> Elf32<'a> {
 
     pub fn get_section_name(&'a self,idx : usize) -> Result<&'a [u8],Error>{
         let name: &[u8];
-        let header: &Elf32Shdr = match self.section_header(idx) {
+        let header: &Elf32Shdr = match self.shdr(idx) {
             Ok(value) => value,
             Err(_) => {
                 return Err(Error::SectionHeaderRetrievalError);
@@ -170,7 +170,7 @@ impl<'a> Elf32<'a> {
             Err(_) => return Err(Error::SectionRetrievalError),
         };
         if section_cell.get().is_none() {
-            let header: &Elf32Shdr = match self.section_header(idx) {
+            let header: &Elf32Shdr = match self.shdr(idx) {
                 Ok(value) => value,
                 Err(_) => {
                     return Err(Error::SectionHeaderRetrievalError);
@@ -267,8 +267,32 @@ impl<'a> Elf32<'a> {
         return Ok(None);
     }
 
+    pub fn symbol_by_name(
+        &'a self,
+        name: &[u8],
+    ) -> Result<Option<Elf32Symbol<'a>>, Error> {
+        for idx in 0..self.sht_entry_count(){
+            let section_header = match self.shdr(idx){
+                Ok(value) => value,
+                Err(_) => return Err(Error::SectionNameFetchingError),
+            };
+            if section_header.sh_type() == SHT_SYMTAB || 
+                section_header.sh_type() == SHT_DYNSYM{
+                let section = match self.section(idx){
+                    Ok(value) => value,
+                    Err(_) => return Err(Error::SectionbuildingError),
+                };
+                 match section.symbol_by_name(name){
+                    Ok(value) => return Ok(value),
+                    Err(_) => return Err(Error::SymbolLookupError),
+                };
+            }
+        }
+        return Ok(None);
+    }
 
-    fn calc_program_header_offset(
+
+    fn calc_phdr_offset(
         &self,
         idx: usize,
     ) -> Result<Elf32Off, Error> {
@@ -281,21 +305,21 @@ impl<'a> Elf32<'a> {
         Ok(Elf32Off::from((ph_offset + idx * ph_entsize) as u32))
     }
 
-    pub fn program_header(&self, idx: usize) -> Result<&Elf32Phdr, Error> {
+    pub fn phdr(&self, idx: usize) -> Result<&Elf32Phdr, Error> {
         let ph_cell = match self.pht.get_ph(idx) {
             Ok(value) => value,
             Err(_) => return Err(Error::ProgramHeaderRetrievalError),
         };
         if ph_cell.get().is_none() {
-            let ph_offset = match self.calc_program_header_offset(idx) {
+            let ph_offset = match self.calc_phdr_offset(idx) {
                 Ok(off) => off.value as usize,
                 Err(_) => return Err(Error::CalcOffsetError),
             };
 
-            let program_header_bytes: &[u8] = &self.raw_bytes[ph_offset..];
+            let phdr_bytes: &[u8] = &self.raw_bytes[ph_offset..];
 
-            let program_header = match Elf32Phdr::from_bytes(
-                program_header_bytes,
+            let phdr = match Elf32Phdr::from_bytes(
+                phdr_bytes,
                 self.endianness(),
             ) {
                 Ok(value) => value,
@@ -303,7 +327,7 @@ impl<'a> Elf32<'a> {
                     return Err(Error::ProgramHeaderConstructionError);
                 }
             };
-            match ph_cell.set(program_header) {
+            match ph_cell.set(phdr) {
                 Ok(_) => (),
                 Err(_) => return Err(Error::OnceCellFailureError),
             };
@@ -325,7 +349,7 @@ impl<'a> Elf32<'a> {
         &'a self,
         idx: usize,
     ) -> Result<Elf32Segment<'a>, Error> {
-        let header: &Elf32Phdr = match self.program_header(idx) {
+        let header: &Elf32Phdr = match self.phdr(idx) {
             Ok(value) => value,
             Err(_) => return Err(Error::ProgramHeaderRetrievalError),
         };

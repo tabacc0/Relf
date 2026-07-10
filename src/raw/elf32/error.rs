@@ -31,6 +31,7 @@ pub enum Error {
     SectionNameFetchingError,
     SymbolNameFetchingError,
     SymbolFetchingError,
+    SymbolLookupError,
     RelFetchingError,
     RelaFetchingError,
     SymFetchingError,
@@ -108,6 +109,9 @@ impl fmt::Display for Error {
             }
             Self::SymbolFetchingError => {
                 write!(f, "SymbolFetchingError")
+            }
+            Self::SymbolLookupError => {
+                write!(f, "SymbolLookupError")
             }
             Self::SymFetchingError => write!(f, "SymFetchingError"),
             Self::RelFetchingError => write!(f, "RelFetchingError"),

@@ -42,4 +42,16 @@ fn main() {
             );
         }
     }
+    let symbol = match elf_file.symbol_by_name(b"signal"){
+        Ok(value) => value.unwrap(),
+        Err(_) => return (),
+    };
+            println!(
+                "\tsymbol:\n\
+                \t name : {}\n\
+                \t value : {}\n\
+                ",
+                str::from_utf8(symbol.name()).unwrap(),
+                symbol.value()
+            );
 }

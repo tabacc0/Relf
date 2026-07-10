@@ -107,8 +107,9 @@ impl<'a> Elf32Section<'a> {
     pub fn entry_size(&self) -> u32 {
         u32::from(self.header.sh_entsize())
     }
-    pub fn entry_count(&self) -> u32 {
+    pub fn entry_count(&self) -> usize {
         u32::from(self.header.sh_size() / self.header.sh_entsize())
+            as usize
     }
 
     //type-related properties
@@ -272,6 +273,30 @@ impl<'a> Elf32Section<'a> {
         };
         let symbol = Elf32Symbol::new(name, header);
         Ok(symbol)
+    }
+
+    pub fn symbol_by_name(
+        &'a self,
+        name: &[u8],
+    ) -> Result<Option<Elf32Symbol<'a>>, Error> {
+
+        for idx in 0..self.entry_count(){
+            let symbol = match self.symbol(idx) {
+                Ok(value) => value,
+                Err(_) => return Err(Error::SymbolFetchingError),
+            };
+
+            if name == symbol.name() {
+                let symbol = match self.symbol(idx){
+                    Ok(value) => value,
+                    Err(_) => return Err(Error::SymbolFetchingError),
+                };
+
+                return Ok(Some(symbol));
+            }
+
+        }
+        return Ok(None);
     }
 
     fn calc_rel_offset(&self, idx: usize) -> Result<Elf32Off, Error> {
