@@ -4,11 +4,13 @@ use crate::raw::elf64::relocation::rel::*;
 use crate::raw::elf64::relocation::rela::*;
 use crate::raw::elf64::relocation::constants::*;
 use crate::raw::elf64::section::constants::*;
-use crate::raw::elf64::section::section_header::*;
+use crate::raw::elf64::section::section_header::*; 
 use crate::model::elf64::symbol::symbol::*;
 use crate::raw::elf64::symbol::symbol_entry::*;
 use crate::raw::elf64::symbol::constants::*;
 use crate::raw::elf64::types::*;
+use crate::model::elf64::section::symbol_iter::Elf64SymbolIter;
+use crate::model::elf64::section::relocation_iter::Elf64RelocationIter;
 
 #[derive(Debug)]
 pub struct Elf64Section<'a> {
@@ -215,6 +217,9 @@ impl<'a> Elf64Section<'a> {
 
     pub fn is_comdat_group(&self) -> bool {
         if self.is_group_section() {
+            if self.raw_bytes.len() < 4 {
+                return false;
+            }
             let flag_entry = match Elf64Word::from_bytes(
                 &self.raw_bytes[0..4],
                 self.endianness,
@@ -395,6 +400,9 @@ impl<'a> Elf64Section<'a> {
         if idx >= table_size {
             return Err(Error::IndexOutOfBoundsError);
         }
+        if self.raw_bytes.len() < table_size {
+            return Err(Error::BufferTooShort);
+        }
         let mut upper_bound = idx;
         while upper_bound < table_size {
             if self.raw_bytes[upper_bound] == 0 {
@@ -406,5 +414,13 @@ impl<'a> Elf64Section<'a> {
 
         let string = &self.raw_bytes()[idx..upper_bound];
         Ok(string)
+    }
+
+
+    pub fn symbol_iter(&'a self) -> Elf64SymbolIter<'a> {
+        Elf64SymbolIter::new(&self)
+    }
+    pub fn relocation_iter(&'a self) -> Elf64RelocationIter<'a> {
+        Elf64RelocationIter::new(&self)
     }
 }
