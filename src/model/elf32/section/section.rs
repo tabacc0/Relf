@@ -8,6 +8,8 @@ use crate::raw::elf32::section::section_header::*;
 use crate::model::elf32::symbol::symbol::*;
 use crate::raw::elf32::symbol::symbol_entry::*;
 use crate::raw::elf32::types::*;
+use crate::model::elf32::section::symbol_iter::Elf32SymbolIter;
+use crate::model::elf32::section::relocation_iter::Elf32RelocationIter;
 
 #[derive(Debug)]
 pub struct Elf32Section<'a> {
@@ -405,5 +407,11 @@ impl<'a> Elf32Section<'a> {
 
         let string = &self.raw_bytes()[idx..upper_bound];
         Ok(string)
+    }
+    pub fn symbol_iter(&'a self) -> Elf32SymbolIter<'a> {
+        Elf32SymbolIter::new(&self)
+    }
+    pub fn relocation_iter(&'a self) -> Elf32RelocationIter<'a> {
+        Elf32RelocationIter::new(&self)
     }
 }

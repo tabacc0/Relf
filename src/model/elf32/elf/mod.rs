@@ -6,6 +6,11 @@ use crate::raw::elf32::section::constants::*;
 use crate::model::elf32::section::section::*;
 use crate::raw::elf32::section::section_header::*;
 use crate::model::elf32::symbol::symbol::Elf32Symbol;
+use crate::model::elf32::elf::section_iter::Elf32SectionIter;
+use crate::model::elf32::elf::segment_iter::Elf32SegmentIter;
+
+pub mod section_iter;
+pub mod segment_iter;
 
 
 impl<'a> Elf32<'a> {
@@ -206,5 +211,11 @@ impl<'a> Elf32<'a> {
         let raw_bytes: &[u8] =
             &self.raw_bytes()[sh_offset..sh_offset + sh_size];
         Ok(Elf32Segment::new(raw_bytes, header))
+    }
+    pub fn section_iter(&'a self) -> Elf32SectionIter<'a> {
+        Elf32SectionIter::new(&self)
+    }
+    pub fn segment_iter(&'a self) -> Elf32SegmentIter<'a> {
+        Elf32SegmentIter::new(&self)
     }
 }
