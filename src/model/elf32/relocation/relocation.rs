@@ -1,7 +1,8 @@
-use crate::raw::elf32::error::*;
-use crate::raw::elf32::relocation::*;
-use crate::raw::elf32::section::section::*;
-use crate::raw::elf32::symbol::symbol::*;
+use crate::global::error::Error;
+use crate::raw::elf32::relocation::rel::*;
+use crate::raw::elf32::relocation::rela::*;
+use crate::model::elf32::section::section::*;
+use crate::model::elf32::symbol::symbol::*;
 #[derive(Debug)]
 pub enum Elf32RelocationHeader {
     Rel(Elf32Rel),

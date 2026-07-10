@@ -1,43 +1,42 @@
 use crate::global::error::Error;
-use crate::raw::elf32::program::constants::*;
-use crate::raw::elf32::section::constants::*;
-use crate::raw::elf32::types::*;
-pub mod constants;
-use constants::*;
+use crate::raw::elf64::program::constants::*;
+use crate::raw::elf64::section::constants::*;
+use crate::raw::elf64::types::*;
+use crate::raw::elf64::header::constants::*;
 
 #[derive(Debug)]
 #[repr(C)]
-pub struct Elf32Ehdr {
+pub struct Elf64Ehdr {
     e_ident: [u8; 16],    //file identifier
-    e_type: Elf32Half,    //object file type
-    e_machine: Elf32Half, //architecture
-    e_version: Elf32Word, //ELF version
-    e_entry: Elf32Addr,   //entry point if executable, 0 if not
+    e_type: Elf64Half,    //object file type
+    e_machine: Elf64Half, //architecture
+    e_version: Elf64Word, //ELF version
+    e_entry: Elf64Addr,   //entry point if executable, 0 if not
     //file offset of PROGRAM header table,0 if none
-    e_phoff: Elf32Off,
+    e_phoff: Elf64Off,
     //file offset of SECTION header table,0 if none
-    e_shoff: Elf32Off,
-    e_flags: Elf32Word,  //processor specific flags
-    e_ehsize: Elf32Half, //ELF header size
+    e_shoff: Elf64Off,
+    e_flags: Elf64Word,  //processor specific flags
+    e_ehsize: Elf64Half, //ELF header size
     //size of entries in PROGRAM header table
     //all entries are the same size
-    e_phentsize: Elf32Half,
+    e_phentsize: Elf64Half,
     //number of entries in program header table
-    e_phnum: Elf32Half,
+    e_phnum: Elf64Half,
     //size of entries in SECTION header table
     //all entries are the same size
-    e_shentsize: Elf32Half,
+    e_shentsize: Elf64Half,
     //number of entries in section header table
-    e_shnum: Elf32Half,
+    e_shnum: Elf64Half,
     //index in the SECTION header table of the
     //section associated with a string table
     //the string table has section names
-    e_shstrndx: Elf32Half,
+    e_shstrndx: Elf64Half,
 }
 
-impl Elf32Ehdr {
+impl Elf64Ehdr {
     pub fn from_bytes(raw_bytes: &[u8]) -> Result<Self, Error> {
-        if raw_bytes.len() < ELF32EHDRSIZE {
+        if raw_bytes.len() < ELF64EHDRSIZE {
             return Err(Error::BufferTooShort);
         }
         let mut e_ident: [u8; 16] = [0; 16];
@@ -60,12 +59,12 @@ impl Elf32Ehdr {
         let endianness: u8 = e_ident[EI_DATA as usize];
 
         let e_type =
-            match Elf32Half::from_bytes(&raw_bytes[16..18], endianness) {
+            match Elf64Half::from_bytes(&raw_bytes[16..18], endianness) {
                 Ok(value) => value,
                 Err(_) => return Err(Error::FieldBuildingError),
             };
         let e_machine =
-            match Elf32Half::from_bytes(&raw_bytes[18..20], endianness) {
+            match Elf64Half::from_bytes(&raw_bytes[18..20], endianness) {
                 Ok(value) => {
                     if !VALID_EM.contains(&value) {
                         return Err(Error::InvalidFieldValue);
@@ -77,7 +76,7 @@ impl Elf32Ehdr {
                 }
             };
         let e_version =
-            match Elf32Word::from_bytes(&raw_bytes[20..24], endianness) {
+            match Elf64Word::from_bytes(&raw_bytes[20..24], endianness) {
                 Ok(value) => {
                     if !VALID_EV.contains(&value) {
                         return Err(Error::InvalidFieldValue);
@@ -89,44 +88,44 @@ impl Elf32Ehdr {
                 }
             };
         let e_entry =
-            match Elf32Addr::from_bytes(&raw_bytes[24..28], endianness) {
+            match Elf64Addr::from_bytes(&raw_bytes[24..32], endianness) {
                 Ok(value) => value,
                 Err(_) => {
                     return Err(Error::FieldBuildingError);
                 }
             };
         let e_phoff =
-            match Elf32Off::from_bytes(&raw_bytes[28..32], endianness) {
+            match Elf64Off::from_bytes(&raw_bytes[32..40], endianness) {
                 Ok(value) => value,
                 Err(_) => {
                     return Err(Error::FieldBuildingError);
                 }
             };
         let e_shoff =
-            match Elf32Off::from_bytes(&raw_bytes[32..36], endianness) {
+            match Elf64Off::from_bytes(&raw_bytes[40..48], endianness) {
                 Ok(value) => value,
                 Err(_) => {
                     return Err(Error::FieldBuildingError);
                 }
             };
         let e_flags =
-            match Elf32Word::from_bytes(&raw_bytes[36..40], endianness) {
+            match Elf64Word::from_bytes(&raw_bytes[48..52], endianness) {
                 Ok(value) => value,
                 Err(_) => {
                     return Err(Error::FieldBuildingError);
                 }
             };
         let e_ehsize =
-            match Elf32Half::from_bytes(&raw_bytes[40..42], endianness) {
+            match Elf64Half::from_bytes(&raw_bytes[52..54], endianness) {
                 Ok(value) => value,
                 Err(_) => {
                     return Err(Error::FieldBuildingError);
                 }
             };
         let e_phentsize =
-            match Elf32Half::from_bytes(&raw_bytes[42..44], endianness) {
+            match Elf64Half::from_bytes(&raw_bytes[54..56], endianness) {
                 Ok(value) => {
-                    if u16::from(value) as usize != ELF32PHDRSIZE {
+                    if u16::from(value) as usize != ELF64PHDRSIZE {
                         return Err(Error::InvalidPhEntSize);
                     }
                     value
@@ -136,16 +135,16 @@ impl Elf32Ehdr {
                 }
             };
         let e_phnum =
-            match Elf32Half::from_bytes(&raw_bytes[44..46], endianness) {
+            match Elf64Half::from_bytes(&raw_bytes[56..58], endianness) {
                 Ok(value) => value,
                 Err(_) => {
                     return Err(Error::FieldBuildingError);
                 }
             };
         let e_shentsize =
-            match Elf32Half::from_bytes(&raw_bytes[46..48], endianness) {
+            match Elf64Half::from_bytes(&raw_bytes[58..60], endianness) {
                 Ok(value) => {
-                    if u16::from(value) as usize != ELF32SHDRSIZE {
+                    if u16::from(value) as usize != ELF64SHDRSIZE {
                         return Err(Error::InvalidShEntSize);
                     }
                     value
@@ -155,14 +154,14 @@ impl Elf32Ehdr {
                 }
             };
         let e_shnum =
-            match Elf32Half::from_bytes(&raw_bytes[48..50], endianness) {
+            match Elf64Half::from_bytes(&raw_bytes[60..62], endianness) {
                 Ok(value) => value,
                 Err(_) => {
                     return Err(Error::FieldBuildingError);
                 }
             };
         let e_shstrndx =
-            match Elf32Half::from_bytes(&raw_bytes[50..52], endianness) {
+            match Elf64Half::from_bytes(&raw_bytes[62..64], endianness) {
                 Ok(value) => value,
                 Err(_) => {
                     return Err(Error::FieldBuildingError);
@@ -190,55 +189,55 @@ impl Elf32Ehdr {
     pub fn e_ident(&self) -> &[u8] {
         &self.e_ident
     }
-    pub fn e_type(&self) -> Elf32Half {
+    pub fn e_type(&self) -> Elf64Half {
         self.e_type
     }
-    pub fn e_machine(&self) -> Elf32Half {
+    pub fn e_machine(&self) -> Elf64Half {
         self.e_machine
     }
-    pub fn e_version(&self) -> Elf32Word {
+    pub fn e_version(&self) -> Elf64Word {
         self.e_version
     }
-    pub fn e_entry(&self) -> Elf32Addr {
+    pub fn e_entry(&self) -> Elf64Addr {
         self.e_entry
     }
-    pub fn e_phoff(&self) -> Elf32Off {
+    pub fn e_phoff(&self) -> Elf64Off {
         self.e_phoff
     }
-    pub fn e_shoff(&self) -> Elf32Off {
+    pub fn e_shoff(&self) -> Elf64Off {
         self.e_shoff
     }
-    pub fn e_flags(&self) -> Elf32Word {
+    pub fn e_flags(&self) -> Elf64Word {
         self.e_flags
     }
-    pub fn e_ehsize(&self) -> Elf32Half {
+    pub fn e_ehsize(&self) -> Elf64Half {
         self.e_ehsize
     }
-    pub fn e_phentsize(&self) -> Elf32Half {
+    pub fn e_phentsize(&self) -> Elf64Half {
         self.e_phentsize
     }
-    pub fn e_phnum(&self) -> Elf32Half {
+    pub fn e_phnum(&self) -> Elf64Half {
         self.e_phnum
     }
-    pub fn e_shentsize(&self) -> Elf32Half {
+    pub fn e_shentsize(&self) -> Elf64Half {
         self.e_shentsize
     }
-    pub fn e_shnum(&self) -> Elf32Half {
+    pub fn e_shnum(&self) -> Elf64Half {
         self.e_shnum
     }
-    pub fn e_shstrndx(&self) -> Elf32Half {
+    pub fn e_shstrndx(&self) -> Elf64Half {
         self.e_shstrndx
     }
     pub fn endianness(&self) -> u8 {
         self.e_ident[EI_DATA as usize]
     }
-    pub fn section_header_size(&self) -> Elf32Word {
-        Elf32Word::from(
+    pub fn section_header_size(&self) -> Elf64Word {
+        Elf64Word::from(
             (u16::from(self.e_shentsize) * u16::from(self.e_shnum)) as u32,
         )
     }
-    pub fn program_header_size(&self) -> Elf32Word {
-        Elf32Word::from(
+    pub fn program_header_size(&self) -> Elf64Word {
+        Elf64Word::from(
             (u16::from(self.e_phentsize) * u16::from(self.e_phnum)) as u32,
         )
     }

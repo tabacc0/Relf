@@ -1,5 +1,5 @@
-use crate::raw::elf32::error::Error;
-use crate::raw::elf32::section::section::*;
+use crate::global::error::Error;
+use crate::model::elf32::section::section::*;
 use crate::raw::elf32::types::Elf32Half;
 use std::cell::OnceCell;
 
