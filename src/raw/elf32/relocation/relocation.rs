@@ -14,18 +14,24 @@ pub struct Elf32Relocation<'a> {
     //caching symbols somewhere wasn't worth it
     //so i violated the layer just for this because it
     //is really better to parse symbols from a table lazily
+    //and not cache them
     //than to allocate OnceCells for 10000 symbols that won't be used
     symbol_table: &'a Elf32Section<'a>,
+    //this holds a reference to the section that the relocation applies 
+    //to , this way this relocation object has every info it could need
+    relocation_target: &'a Elf32Section<'a>,
 }
 
 impl<'a> Elf32Relocation<'a> {
     pub fn new(
         header: Elf32RelocationHeader,
         symbol_table: &'a Elf32Section,
+        relocation_target: &'a Elf32Section,
     ) -> Self {
         Self {
             header,
             symbol_table,
+            relocation_target,
         }
     }
     pub fn offset(&self) -> u32 {
@@ -55,6 +61,9 @@ impl<'a> Elf32Relocation<'a> {
                 return Some(i32::from(header.r_addend()));
             }
         }
+    }
+    pub fn target_section(&'a self) -> &'a Elf32Section<'a> {
+        self.relocation_target
     }
     pub fn symbol(&'a self) -> Result<Elf32Symbol<'a>, Error> {
         match &self.header {

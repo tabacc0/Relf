@@ -8,31 +8,38 @@ fn main() {
         Ok(f) => f,
         Err(_) => return (),
     };
-    let mut j: usize = 0;
-    loop {
-        let section = match elf_file.section(j) {
-            Ok(value) => value,
-            Err(_) => return (),
-        };
-        let section_name = section.name();
-        println!("[{j}] {} ", str::from_utf8(section_name).unwrap());
+    let section = match elf_file.section_by_name(b".rel.plt") {
+        Ok(value) => value.unwrap(),
+        Err(_) => return (),
+    };
+    let section_name = section.name();
+    println!(" section : {}  ", str::from_utf8(section_name).unwrap());
 
-        if section.is_symtab() {
-            println!("symbols : ");
-            let mut i: usize = 0;
-            loop {
-                let symbol = match section.symbol(i) {
-                    Ok(value) => value,
-                    Err(_) => break,
-                };
-                i += 1;
-                let symbol_name = symbol.name();
-                println!(
-                    "      [{i}] {}",
-                    str::from_utf8(symbol_name).unwrap()
-                );
-            }
+    if section.is_reltab() {
+        println!("relocations : ");
+        for i in 0..section.entry_count(){
+            let relocation= match section.relocation(i as usize) {
+                Ok(value) => value,
+                Err(_) => break,
+            };
+            let  target = relocation.target_section().name() ;
+            let  symbol= match relocation.symbol() {
+                Ok(value) => value,
+                Err(_) => break,
+            };
+            let symbol_name = symbol.name();
+            println!(
+                "\trelocation offset : {}\n\
+                \taffected section : {}\n\
+                \t\trellocated symbol:\n\
+                \t\t\t name : {}\n\
+                \t\t\t value : {}\n\
+                ",
+                relocation.offset(),
+                str::from_utf8(target).unwrap(),
+                str::from_utf8(symbol_name).unwrap(),
+                symbol.value()
+            );
         }
-        j += 1;
     }
 }

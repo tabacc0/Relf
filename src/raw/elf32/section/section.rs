@@ -17,7 +17,7 @@ pub struct Elf32Section<'a> {
     //or a  symbol table if this section is a relocation table
     link_section: Option<&'a Elf32Section<'a>>,
     //in case of relocation , sh_info holds the section header
-    //table index to which the relocation applies
+    //table index to which the relocations applies
     //and in case of a group section this has the symbol entry
     //index in the link section whose name serves as the group
     //signature
@@ -350,7 +350,12 @@ impl<'a> Elf32Section<'a> {
             Some(value) => value,
             None => return Err(Error::NoAssociatedSectionError),
         };
-        let relocation = Elf32Relocation::new(header, symbol_table);
+        let relocation_target = match self.info_section {
+            Some(value) => value,
+            None => return Err(Error::NoAssociatedSectionError),
+        };
+        let relocation =
+            Elf32Relocation::new(header, symbol_table,relocation_target);
         Ok(relocation)
     }
     pub fn str(&self, idx: usize) -> Result<&'a [u8], Error> {

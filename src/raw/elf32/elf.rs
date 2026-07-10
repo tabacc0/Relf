@@ -47,6 +47,10 @@ impl<'a> Elf32<'a> {
     pub fn endianness(&self) -> u8 {
         self.header.endianness()
     }
+    pub fn sht_entry_count(&self) -> usize {
+        u16::from(self.header.e_shnum()) as usize
+    }
+
 
     fn calc_section_header_offset(
         &self,
@@ -104,6 +108,59 @@ impl<'a> Elf32<'a> {
         }
     }
 
+    pub fn get_section_name(&'a self,idx : usize) -> Result<&'a [u8],Error>{
+        let name: &[u8];
+        let header: &Elf32Shdr = match self.section_header(idx) {
+            Ok(value) => value,
+            Err(_) => {
+                return Err(Error::SectionHeaderRetrievalError);
+            }
+        };
+        let name_idx = u32::from(header.sh_name()) as usize;
+        let sh_size = u32::from(header.sh_size()) as usize;
+        let sh_offset = u32::from(header.sh_offset()) as usize;
+
+        let shstrndx = u16::from(self.header.e_shstrndx()) as usize;
+
+
+        //special treatment for the string table
+        //that has the sections names
+        //bootstraping its name
+        if idx == shstrndx {
+            if self.raw_bytes.len() < sh_offset+sh_size {
+                return Err(Error::BufferTooShort);
+            } 
+            let raw_bytes = &self.raw_bytes[sh_offset..sh_offset+sh_size];
+            let table_size = sh_size;
+            if name_idx >= table_size {
+                return Err(Error::IndexOutOfBoundsError);
+            }
+            let mut upper_bound = name_idx;
+            while upper_bound < table_size {
+                if raw_bytes[upper_bound] == 0 {
+                    break;
+                } else {
+                    upper_bound += 1;
+                }
+            }
+            name = &raw_bytes[name_idx..upper_bound];
+        } else {
+            let strsh_section = match self.section(shstrndx) {
+                Ok(value) => value,
+                Err(_) => {
+                    return Err(Error::SectionbuildingError);
+                }
+            };
+            name = match strsh_section.str(name_idx) {
+                Ok(value) => value,
+                Err(_) => {
+                    return Err(Error::SectionNameFetchingError);
+                }
+            };
+        }
+        Ok(name)
+    } 
+
     pub fn section(
         &'a self,
         idx: usize,
@@ -124,44 +181,15 @@ impl<'a> Elf32<'a> {
             let sh_type = header.sh_type();
             let raw_bytes: &[u8] =
                 &self.raw_bytes[sh_offset..sh_offset + sh_size];
-            let name_idx = u32::from(header.sh_name()) as usize;
             let name: &[u8];
             let mut link_section: Option<&Elf32Section> = None;
             let mut info_section: Option<&Elf32Section> = None;
 
-            //special treatment for the string table
-            //that has the sections names
-            //bootstraping its name
-            let shstrndx = u16::from(self.header.e_shstrndx()) as usize;
 
-            if idx == shstrndx {
-                let table_size = sh_size;
-                if name_idx >= table_size {
-                    return Err(Error::IndexOutOfBoundsError);
-                }
-                let mut upper_bound = name_idx;
-                while upper_bound < table_size {
-                    if raw_bytes[upper_bound] == 0 {
-                        break;
-                    } else {
-                        upper_bound += 1;
-                    }
-                }
-                name = &raw_bytes[name_idx..upper_bound];
-            } else {
-                let strsh_section = match self.section(shstrndx) {
-                    Ok(value) => value,
-                    Err(_) => {
-                        return Err(Error::SectionbuildingError);
-                    }
-                };
-                name = match strsh_section.str(name_idx) {
-                    Ok(value) => value,
-                    Err(_) => {
-                        return Err(Error::SectionNameFetchingError);
-                    }
-                };
-            }
+            name = match self.get_section_name(idx){
+                Ok(value) => value,
+                Err(_) => return Err(Error::SectionNameFetchingError)
+            };
             if sh_type == SHT_REL
                 || sh_type == SHT_RELA
                 || sh_type == SHT_DYNSYM
@@ -217,6 +245,28 @@ impl<'a> Elf32<'a> {
             return Ok(section);
         }
     }
+
+
+    pub fn section_by_name(
+        &'a self,
+        name: &[u8],
+    ) -> Result<Option<&'a Elf32Section<'a>>, Error> {
+        for idx in 0..self.sht_entry_count(){
+            let section_name = match self.get_section_name(idx){
+                Ok(value) => value,
+                Err(_) => return Err(Error::SectionNameFetchingError),
+            };
+            if name == section_name {
+                let section = match self.section(idx){
+                    Ok(value) => value,
+                    Err(_) => return Err(Error::SectionbuildingError),
+                };
+                return Ok(Some(section));
+            }
+        }
+        return Ok(None);
+    }
+
 
     fn calc_program_header_offset(
         &self,
