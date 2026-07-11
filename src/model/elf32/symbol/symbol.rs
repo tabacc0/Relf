@@ -1,5 +1,6 @@
 use crate::raw::elf32::symbol::constants::*;
 use crate::raw::elf32::symbol::symbol_entry::*;
+use crate::raw::elf32::section::section_header_table::*;
 
 #[derive(Debug)]
 pub struct Elf32Symbol<'a> {
@@ -25,10 +26,41 @@ impl<'a> Elf32Symbol<'a> {
     pub fn value(&self) -> u32 {
         u32::from(self.header.st_value())
     }
+    pub fn info(&self) -> u8 {
+        self.header.st_info()
+    }
+    pub fn other(&self) -> u8 {
+        self.header.st_other()
+    }
+
+    pub fn size(&self) -> u32 {
+        u32::from(self.header.st_size())
+    }
 
     pub fn section_idx(&self) -> usize {
         u16::from(self.header.st_shndx()) as usize
     }
+
+
+    pub fn is_abs(&self) -> bool {
+        if self.header.st_shndx() != SHN_ABS {
+            return false;
+        }
+        true
+    }
+    pub fn is_undef(&self) -> bool {
+        if self.header.st_shndx() != SHN_UNDEF {
+            return false;
+        }
+        true
+    }
+    pub fn has_xindex(&self) -> bool {
+        if self.header.st_shndx() != SHN_XINDEX {
+            return false;
+        }
+        true
+    }
+
 
     pub fn is_local(&self) -> bool {
         if self.header.st_bind() != STB_LOCAL {
@@ -76,7 +108,7 @@ impl<'a> Elf32Symbol<'a> {
         true
     }
 
-    pub fn is_file_name(&self) -> bool {
+    pub fn is_filename(&self) -> bool {
         if self.header.st_type() != STT_FILE {
             return false;
         }

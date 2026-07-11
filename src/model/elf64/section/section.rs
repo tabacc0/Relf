@@ -9,8 +9,7 @@ use crate::raw::elf64::relocation::rela::*;
 use crate::raw::elf64::section::constants::*;
 use crate::raw::elf64::section::rel_iter::*;
 use crate::raw::elf64::section::rela_iter::*;
-use crate::raw::elf64::section::section_header::*;
-use crate::raw::elf64::section::symbol_entry_iter::*;
+use crate::raw::elf64::section::section_header::*; use crate::raw::elf64::section::symbol_entry_iter::*;
 use crate::raw::elf64::symbol::constants::*;
 use crate::raw::elf64::symbol::symbol_entry::*;
 use crate::raw::elf64::types::*;
@@ -70,7 +69,7 @@ impl<'a> Elf64Section<'a> {
     }
 
     pub fn group_symbol(&'a self) -> Option<Elf64Symbol<'a>> {
-        if self.is_group_section() {
+        if self.is_group() {
             return match self.symbol(self.info() as usize) {
                 Ok(value) => Some(value),
                 Err(_) => None,
@@ -79,7 +78,7 @@ impl<'a> Elf64Section<'a> {
         None
     }
     pub fn group_name(&self) -> Option<&[u8]> {
-        if self.is_group_section() {
+        if self.is_group() {
             return match self.symbol(self.info() as usize) {
                 Ok(value) => Some(value.name()),
                 Err(_) => None,
@@ -103,6 +102,12 @@ impl<'a> Elf64Section<'a> {
     pub fn size(&self) -> u64 {
         u64::from(self.header.sh_size())
     }
+    pub fn file_size(&self) -> u64 {
+        if self.is_nobits(){
+            return 0u64;
+        }
+        u64::from(self.header.sh_size())
+    }
     pub fn link(&self) -> u32 {
         u32::from(self.header.sh_link())
     }
@@ -121,26 +126,42 @@ impl<'a> Elf64Section<'a> {
     }
 
     //type-related properties
+    pub fn is_null(&self) -> bool {
+        self.header.sh_type() == SHT_NULL
+    }
+    pub fn is_progbits(&self) -> bool {
+        self.header.sh_type() == SHT_PROGBITS
+    }
     pub fn is_symtab(&self) -> bool {
         self.header.sh_type() == SHT_SYMTAB
             || self.header.sh_type() == SHT_DYNSYM
     }
+    //for specifity
+    pub fn is_dynsym(&self) -> bool {
+        self.header.sh_type() == SHT_DYNSYM
+    }
     pub fn is_strtab(&self) -> bool {
         self.header.sh_type() == SHT_STRTAB
     }
-    pub fn is_reltab(&self) -> bool {
+    pub fn is_rel(&self) -> bool {
         self.header.sh_type() == SHT_REL
     }
-    pub fn is_relatab(&self) -> bool {
+    pub fn is_hash(&self) -> bool {
+        self.header.sh_type() == SHT_HASH
+    }
+    pub fn is_dynamic(&self) -> bool {
+        self.header.sh_type() == SHT_DYNAMIC
+    }
+    pub fn is_rela(&self) -> bool {
         self.header.sh_type() == SHT_RELA
     }
-    pub fn is_group_section(&self) -> bool {
+    pub fn is_group(&self) -> bool {
         self.header.sh_type() == SHT_GROUP
     }
-    pub fn is_note_section(&self) -> bool {
+    pub fn is_note(&self) -> bool {
         self.header.sh_type() == SHT_NOTE
     }
-    pub fn is_empty(&self) -> bool {
+    pub fn is_nobits(&self) -> bool {
         self.header.sh_type() == SHT_NOBITS
     }
     pub fn is_fini_array(&self) -> bool {
@@ -162,14 +183,14 @@ impl<'a> Elf64Section<'a> {
         }
         true
     }
-    pub fn has_exec_instr(&self) -> bool {
+    pub fn is_executable(&self) -> bool {
         if u64::from(self.header.sh_flags() & SHF_EXECINSTR) == 0 {
             return false;
         }
         true
     }
 
-    pub fn to_be_merged(&self) -> bool {
+    pub fn is_merged(&self) -> bool {
         if u64::from(self.header.sh_flags() & SHF_MERGE) == 0 {
             return false;
         }
@@ -219,7 +240,7 @@ impl<'a> Elf64Section<'a> {
     }
 
     pub fn is_comdat_group(&self) -> bool {
-        if self.is_group_section() {
+        if self.is_group() {
             if self.raw_bytes.len() < 4 {
                 return false;
             }
@@ -320,7 +341,7 @@ impl<'a> Elf64Section<'a> {
     }
 
     pub fn rel(&self, idx: usize) -> Result<Elf64Rel, Error> {
-        if !self.is_reltab() {
+        if !self.is_rel() {
             return Err(Error::NotRelTable);
         }
         let rel_offset = match self.calc_rel_offset(idx) {
@@ -347,7 +368,7 @@ impl<'a> Elf64Section<'a> {
     }
 
     pub fn rela(&self, idx: usize) -> Result<Elf64Rela, Error> {
-        if !self.is_relatab() {
+        if !self.is_rela() {
             return Err(Error::NotRelaTable); //lol def not
         }
         let rela_offset = match self.calc_rela_offset(idx) {
@@ -367,12 +388,12 @@ impl<'a> Elf64Section<'a> {
         idx: usize,
     ) -> Result<Elf64Relocation<'a>, Error> {
         let header: Elf64RelocationHeader;
-        if self.is_reltab() {
+        if self.is_rel() {
             header = match self.rel(idx) {
                 Ok(value) => Elf64RelocationHeader::Rel(value),
                 Err(_) => return Err(Error::RelFetchingError),
             };
-        } else if self.is_relatab() {
+        } else if self.is_rela() {
             header = match self.rela(idx) {
                 Ok(value) => Elf64RelocationHeader::Rela(value),
                 Err(_) => return Err(Error::RelaFetchingError),
@@ -397,7 +418,7 @@ impl<'a> Elf64Section<'a> {
             return Err(Error::NotStringTable);
         }
         //number of bytes in the section
-        let table_size = u64::from(self.size()) as usize;
+        let table_size = u64::from(self.file_size()) as usize;
         if idx >= table_size {
             return Err(Error::IndexOutOfBoundsError);
         }

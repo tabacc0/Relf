@@ -84,14 +84,21 @@ impl<'a> Elf64<'a> {
                 }
             };
             let sh_offset = u64::from(header.sh_offset()) as usize;
-            let sh_size = u64::from(header.sh_size()) as usize;
             let sh_type = header.sh_type();
 
-            if sh_offset + sh_size > self.raw_bytes().len() {
+            let file_size = match sh_type {
+                SHT_NOBITS => 0usize,
+                _ => u64::from(header.sh_size()) as usize,
+            };
+
+            if sh_offset + file_size > self.raw_bytes().len() {
+                println!("{sh_offset}");
+                println!("{file_size}");
+                println!("{}",self.raw_bytes().len());
                 return Err(Error::BufferTooShort);
             }
             let raw_bytes: &[u8] =
-                &self.raw_bytes()[sh_offset..sh_offset + sh_size];
+                &self.raw_bytes()[sh_offset..sh_offset + file_size];
             let name: &[u8];
             let mut link_section: Option<&Elf64Section> = None;
             let mut info_section: Option<&Elf64Section> = None;

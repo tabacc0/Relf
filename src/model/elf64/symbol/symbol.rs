@@ -1,5 +1,6 @@
 use crate::raw::elf64::symbol::constants::*;
 use crate::raw::elf64::symbol::symbol_entry::*;
+use crate::raw::elf64::section::section_header_table::*;
 
 #[derive(Debug)]
 pub struct Elf64Symbol<'a> {
@@ -12,8 +13,7 @@ impl<'a> Elf64Symbol<'a> {
         Self { name, header }
     }
     pub fn name(&self) -> &'a [u8] {
-        self.name
-    }
+        self.name }
     pub fn header(&self) -> &Elf64Sym {
         &self.header
     }
@@ -26,9 +26,42 @@ impl<'a> Elf64Symbol<'a> {
         u64::from(self.header.st_value())
     }
 
+    pub fn info(&self) -> u8 {
+        self.header.st_info()
+    }
+    pub fn other(&self) -> u8 {
+        self.header.st_other()
+    }
+    pub fn size(&self) -> u64 {
+        u64::from(self.header.st_size())
+    }
+
     pub fn section_idx(&self) -> usize {
         u16::from(self.header.st_shndx()) as usize
     }
+
+
+    pub fn is_abs(&self) -> bool {
+        if self.header.st_shndx() != SHN_ABS {
+            return false;
+        }
+        true
+    }
+    pub fn is_undef(&self) -> bool {
+        if self.header.st_shndx() != SHN_UNDEF {
+            return false;
+        }
+        true
+    }
+    pub fn has_xindex(&self) -> bool {
+        if self.header.st_shndx() != SHN_XINDEX {
+            return false;
+        }
+        true
+    }
+
+
+
 
     pub fn is_local(&self) -> bool {
         if self.header.st_bind() != STB_LOCAL {
@@ -76,7 +109,7 @@ impl<'a> Elf64Symbol<'a> {
         true
     }
 
-    pub fn is_file_name(&self) -> bool {
+    pub fn is_filename(&self) -> bool {
         if self.header.st_type() != STT_FILE {
             return false;
         }
