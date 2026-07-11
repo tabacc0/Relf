@@ -2,7 +2,6 @@ use crate::raw::elf64::types::Elf64Half;
 
 pub const ELF64SYMSIZE: usize = 24;
 
-
 //reserver index in a symbol table, signigies an undefined symbol
 pub const STN_UNDEF: Elf64Half = Elf64Half { value: 0 };
 

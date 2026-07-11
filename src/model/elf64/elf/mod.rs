@@ -1,19 +1,21 @@
-use crate::raw::elf64::elf::Elf64;
 use crate::global::error::Error;
-use crate::raw::elf64::program::program_header::*;
-use crate::model::elf64::program::segment::*;
-use crate::raw::elf64::section::constants::*;
-use crate::model::elf64::section::section::*;
-use crate::raw::elf64::section::section_header::*;
-use crate::model::elf64::symbol::symbol::Elf64Symbol;
 use crate::model::elf64::elf::section_iter::Elf64SectionIter;
 use crate::model::elf64::elf::segment_iter::Elf64SegmentIter;
+use crate::model::elf64::program::segment::*;
+use crate::model::elf64::section::section::*;
+use crate::model::elf64::symbol::symbol::Elf64Symbol;
+use crate::raw::elf64::elf::Elf64;
+use crate::raw::elf64::program::program_header::*;
+use crate::raw::elf64::section::constants::*;
+use crate::raw::elf64::section::section_header::*;
 
 pub mod section_iter;
 pub mod segment_iter;
 impl<'a> Elf64<'a> {
-
-    pub fn get_section_name(&'a self,idx : usize) -> Result<&'a [u8],Error>{
+    pub fn get_section_name(
+        &'a self,
+        idx: usize,
+    ) -> Result<&'a [u8], Error> {
         let name: &[u8];
         let header: &Elf64Shdr = match self.shdr(idx) {
             Ok(value) => value,
@@ -27,15 +29,15 @@ impl<'a> Elf64<'a> {
 
         let shstrndx = u16::from(self.header().e_shstrndx()) as usize;
 
-
         //special treatment for the string table
         //that has the sections names
         //bootstraping its name
         if idx == shstrndx {
-            if self.raw_bytes().len() < sh_offset+sh_size {
+            if self.raw_bytes().len() < sh_offset + sh_size {
                 return Err(Error::BufferTooShort);
-            } 
-            let raw_bytes = &self.raw_bytes()[sh_offset..sh_offset+sh_size];
+            }
+            let raw_bytes =
+                &self.raw_bytes()[sh_offset..sh_offset + sh_size];
             let table_size = sh_size;
             if name_idx >= table_size {
                 return Err(Error::IndexOutOfBoundsError);
@@ -64,7 +66,7 @@ impl<'a> Elf64<'a> {
             };
         }
         Ok(name)
-    } 
+    }
 
     pub fn section(
         &'a self,
@@ -85,7 +87,7 @@ impl<'a> Elf64<'a> {
             let sh_size = u64::from(header.sh_size()) as usize;
             let sh_type = header.sh_type();
 
-            if sh_offset + sh_size > self.raw_bytes().len(){
+            if sh_offset + sh_size > self.raw_bytes().len() {
                 return Err(Error::BufferTooShort);
             }
             let raw_bytes: &[u8] =
@@ -94,10 +96,9 @@ impl<'a> Elf64<'a> {
             let mut link_section: Option<&Elf64Section> = None;
             let mut info_section: Option<&Elf64Section> = None;
 
-
-            name = match self.get_section_name(idx){
+            name = match self.get_section_name(idx) {
                 Ok(value) => value,
-                Err(_) => return Err(Error::SectionNameFetchingError)
+                Err(_) => return Err(Error::SectionNameFetchingError),
             };
             if sh_type == SHT_REL
                 || sh_type == SHT_RELA
@@ -155,18 +156,17 @@ impl<'a> Elf64<'a> {
         }
     }
 
-
     pub fn section_by_name(
         &'a self,
         name: &[u8],
     ) -> Result<Option<&'a Elf64Section<'a>>, Error> {
-        for idx in 0..self.sht_entry_count(){
-            let section_name = match self.get_section_name(idx){
+        for idx in 0..self.sht_entry_count() {
+            let section_name = match self.get_section_name(idx) {
                 Ok(value) => value,
                 Err(_) => return Err(Error::SectionNameFetchingError),
             };
             if name == section_name {
-                let section = match self.section(idx){
+                let section = match self.section(idx) {
                     Ok(value) => value,
                     Err(_) => return Err(Error::SectionbuildingError),
                 };
@@ -180,18 +180,19 @@ impl<'a> Elf64<'a> {
         &'a self,
         name: &[u8],
     ) -> Result<Option<Elf64Symbol<'a>>, Error> {
-        for idx in 0..self.sht_entry_count(){
-            let section_header = match self.shdr(idx){
+        for idx in 0..self.sht_entry_count() {
+            let section_header = match self.shdr(idx) {
                 Ok(value) => value,
                 Err(_) => return Err(Error::SectionNameFetchingError),
             };
-            if section_header.sh_type() == SHT_SYMTAB || 
-                section_header.sh_type() == SHT_DYNSYM{
-                let section = match self.section(idx){
+            if section_header.sh_type() == SHT_SYMTAB
+                || section_header.sh_type() == SHT_DYNSYM
+            {
+                let section = match self.section(idx) {
                     Ok(value) => value,
                     Err(_) => return Err(Error::SectionbuildingError),
                 };
-                 match section.symbol_by_name(name){
+                match section.symbol_by_name(name) {
                     Ok(value) => return Ok(value),
                     Err(_) => return Err(Error::SymbolLookupError),
                 };
@@ -199,7 +200,6 @@ impl<'a> Elf64<'a> {
         }
         return Ok(None);
     }
-
 
     pub fn segment(
         &'a self,
@@ -211,7 +211,7 @@ impl<'a> Elf64<'a> {
         };
         let ph_offset = u64::from(header.p_offset()) as usize;
         let ph_size = u64::from(header.p_filesz()) as usize;
-        if ph_offset + ph_size > self.raw_bytes().len(){
+        if ph_offset + ph_size > self.raw_bytes().len() {
             return Err(Error::BufferTooShort);
         }
         let raw_bytes: &[u8] =

@@ -1,6 +1,6 @@
-use crate::raw::elf64::types::*;
 use crate::global::error::Error;
 use crate::raw::elf64::relocation::constants::*;
+use crate::raw::elf64::types::*;
 
 #[derive(Debug)]
 pub struct Elf64Rela {
@@ -30,11 +30,13 @@ impl Elf64Rela {
                 Ok(value) => value,
                 Err(_) => return Err(Error::FieldBuildingError),
             };
-        let r_addend =
-            match Elf64Sxword::from_bytes(&raw_bytes[16..24], endianness) {
-                Ok(value) => value,
-                Err(_) => return Err(Error::FieldBuildingError),
-            };
+        let r_addend = match Elf64Sxword::from_bytes(
+            &raw_bytes[16..24],
+            endianness,
+        ) {
+            Ok(value) => value,
+            Err(_) => return Err(Error::FieldBuildingError),
+        };
         Ok(Self {
             r_offset,
             r_info,

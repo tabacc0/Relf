@@ -1,21 +1,22 @@
-use crate::raw::elf32::elf::Elf32;
 use crate::global::error::Error;
-use crate::raw::elf32::program::program_header::*;
-use crate::model::elf32::program::segment::*;
-use crate::raw::elf32::section::constants::*;
-use crate::model::elf32::section::section::*;
-use crate::raw::elf32::section::section_header::*;
-use crate::model::elf32::symbol::symbol::Elf32Symbol;
 use crate::model::elf32::elf::section_iter::Elf32SectionIter;
 use crate::model::elf32::elf::segment_iter::Elf32SegmentIter;
+use crate::model::elf32::program::segment::*;
+use crate::model::elf32::section::section::*;
+use crate::model::elf32::symbol::symbol::Elf32Symbol;
+use crate::raw::elf32::elf::Elf32;
+use crate::raw::elf32::program::program_header::*;
+use crate::raw::elf32::section::constants::*;
+use crate::raw::elf32::section::section_header::*;
 
 pub mod section_iter;
 pub mod segment_iter;
 
-
 impl<'a> Elf32<'a> {
-
-    pub fn get_section_name(&'a self,idx : usize) -> Result<&'a [u8],Error>{
+    pub fn get_section_name(
+        &'a self,
+        idx: usize,
+    ) -> Result<&'a [u8], Error> {
         let name: &[u8];
         let header: &Elf32Shdr = match self.shdr(idx) {
             Ok(value) => value,
@@ -29,15 +30,15 @@ impl<'a> Elf32<'a> {
 
         let shstrndx = u16::from(self.header().e_shstrndx()) as usize;
 
-
         //special treatment for the string table
         //that has the sections names
         //bootstraping its name
         if idx == shstrndx {
-            if self.raw_bytes().len() < sh_offset+sh_size {
+            if self.raw_bytes().len() < sh_offset + sh_size {
                 return Err(Error::BufferTooShort);
-            } 
-            let raw_bytes = &self.raw_bytes()[sh_offset..sh_offset+sh_size];
+            }
+            let raw_bytes =
+                &self.raw_bytes()[sh_offset..sh_offset + sh_size];
             let table_size = sh_size;
             if name_idx >= table_size {
                 return Err(Error::IndexOutOfBoundsError);
@@ -66,7 +67,7 @@ impl<'a> Elf32<'a> {
             };
         }
         Ok(name)
-    } 
+    }
 
     pub fn section(
         &'a self,
@@ -92,10 +93,9 @@ impl<'a> Elf32<'a> {
             let mut link_section: Option<&Elf32Section> = None;
             let mut info_section: Option<&Elf32Section> = None;
 
-
-            name = match self.get_section_name(idx){
+            name = match self.get_section_name(idx) {
                 Ok(value) => value,
-                Err(_) => return Err(Error::SectionNameFetchingError)
+                Err(_) => return Err(Error::SectionNameFetchingError),
             };
             if sh_type == SHT_REL
                 || sh_type == SHT_RELA
@@ -153,18 +153,17 @@ impl<'a> Elf32<'a> {
         }
     }
 
-
     pub fn section_by_name(
         &'a self,
         name: &[u8],
     ) -> Result<Option<&'a Elf32Section<'a>>, Error> {
-        for idx in 0..self.sht_entry_count(){
-            let section_name = match self.get_section_name(idx){
+        for idx in 0..self.sht_entry_count() {
+            let section_name = match self.get_section_name(idx) {
                 Ok(value) => value,
                 Err(_) => return Err(Error::SectionNameFetchingError),
             };
             if name == section_name {
-                let section = match self.section(idx){
+                let section = match self.section(idx) {
                     Ok(value) => value,
                     Err(_) => return Err(Error::SectionbuildingError),
                 };
@@ -178,18 +177,19 @@ impl<'a> Elf32<'a> {
         &'a self,
         name: &[u8],
     ) -> Result<Option<Elf32Symbol<'a>>, Error> {
-        for idx in 0..self.sht_entry_count(){
-            let section_header = match self.shdr(idx){
+        for idx in 0..self.sht_entry_count() {
+            let section_header = match self.shdr(idx) {
                 Ok(value) => value,
                 Err(_) => return Err(Error::SectionNameFetchingError),
             };
-            if section_header.sh_type() == SHT_SYMTAB || 
-                section_header.sh_type() == SHT_DYNSYM{
-                let section = match self.section(idx){
+            if section_header.sh_type() == SHT_SYMTAB
+                || section_header.sh_type() == SHT_DYNSYM
+            {
+                let section = match self.section(idx) {
                     Ok(value) => value,
                     Err(_) => return Err(Error::SectionbuildingError),
                 };
-                 match section.symbol_by_name(name){
+                match section.symbol_by_name(name) {
                     Ok(value) => return Ok(value),
                     Err(_) => return Err(Error::SymbolLookupError),
                 };

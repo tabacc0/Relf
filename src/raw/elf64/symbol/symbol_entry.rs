@@ -1,6 +1,6 @@
 use crate::global::error::Error;
-use crate::raw::elf64::types::*;
 use crate::raw::elf64::symbol::constants::*;
+use crate::raw::elf64::types::*;
 
 #[derive(Debug)]
 pub struct Elf64Sym {
@@ -36,7 +36,6 @@ impl Elf64Sym {
         let st_info = raw_bytes[4];
         let st_other = raw_bytes[5];
 
-
         let st_shndx =
             match Elf64Half::from_bytes(&raw_bytes[6..8], endianness) {
                 Ok(value) => value,
@@ -52,7 +51,6 @@ impl Elf64Sym {
                 Ok(value) => value,
                 Err(_) => return Err(Error::FieldBuildingError),
             };
-
 
         Ok(Self {
             st_name,

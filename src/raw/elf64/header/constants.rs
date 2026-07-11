@@ -5,20 +5,20 @@ pub const ELF64EHDRSIZE: usize = 64;
 // values for e_type
 pub const ET_NONE: Elf64Half = Elf64Half { value: 0 };
 //Relocatable file
-pub const ET_REL: Elf64Half = Elf64Half { value: 1 }; 
+pub const ET_REL: Elf64Half = Elf64Half { value: 1 };
 //Executable file
 pub const ET_EXEC: Elf64Half = Elf64Half { value: 2 };
- //Shared Object file
+//Shared Object file
 pub const ET_DYN: Elf64Half = Elf64Half { value: 3 };
- //Core file
+//Core file
 pub const ET_CORE: Elf64Half = Elf64Half { value: 4 };
- //operating system specific
+//operating system specific
 pub const ET_LOOS: Elf64Half = Elf64Half { value: 0xfe00 };
- //operating system specific
+//operating system specific
 pub const ET_HIOS: Elf64Half = Elf64Half { value: 0xfeff };
- //processor specific
+//processor specific
 pub const ET_LOPROC: Elf64Half = Elf64Half { value: 0xff00 };
- //processor specific
+//processor specific
 pub const ET_HIPROC: Elf64Half = Elf64Half { value: 0xffff };
 
 pub const VALID_ET: &[Elf64Half] = &[

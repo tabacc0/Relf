@@ -1,8 +1,8 @@
 use crate::global::error::Error;
-use crate::raw::elf64::relocation::rel::*;
-use crate::raw::elf64::relocation::rela::*;
 use crate::model::elf64::section::section::*;
 use crate::model::elf64::symbol::symbol::*;
+use crate::raw::elf64::relocation::rel::*;
+use crate::raw::elf64::relocation::rela::*;
 #[derive(Debug)]
 pub enum Elf64RelocationHeader {
     Rel(Elf64Rel),
@@ -18,7 +18,7 @@ pub struct Elf64Relocation<'a> {
     //and not cache them
     //than to allocate OnceCells for 10000 symbols that won't be used
     symbol_table: &'a Elf64Section<'a>,
-    //this holds a reference to the section that the relocation applies 
+    //this holds a reference to the section that the relocation applies
     //to , this way this relocation object has every info it could need
     relocation_target: &'a Elf64Section<'a>,
 }

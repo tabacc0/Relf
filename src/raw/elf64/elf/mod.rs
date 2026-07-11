@@ -1,14 +1,14 @@
 use crate::global::error::Error;
-use crate::raw::elf64::header::header::Elf64Ehdr;
+use crate::model::elf64::section::section_table::*;
+use crate::raw::elf64::elf::section_header_iter::Elf64ShdrIter;
+use crate::raw::elf64::elf::segment_header_iter::Elf64PhdrIter;
 use crate::raw::elf64::header::constants::*;
+use crate::raw::elf64::header::header::Elf64Ehdr;
 use crate::raw::elf64::program::program_header::*;
 use crate::raw::elf64::program::program_header_table::*;
 use crate::raw::elf64::section::section_header::*;
 use crate::raw::elf64::section::section_header_table::*;
-use crate::model::elf64::section::section_table::*;
 use crate::raw::elf64::types::*;
-use crate::raw::elf64::elf::section_header_iter::Elf64ShdrIter;
-use crate::raw::elf64::elf::segment_header_iter::Elf64PhdrIter;
 
 pub mod section_header_iter;
 pub mod segment_header_iter;
@@ -25,7 +25,8 @@ pub struct Elf64<'a> {
 impl<'a> Elf64<'a> {
     pub fn from_bytes(raw_bytes: &'a [u8]) -> Result<Self, Error> {
         if raw_bytes.len() < ELF64EHDRSIZE {
-            return Err(Error::BufferTooShort); }
+            return Err(Error::BufferTooShort);
+        }
         let header = match Elf64Ehdr::from_bytes(raw_bytes) {
             Ok(val) => val,
             Err(_) => return Err(Error::HeaderParsingError),
@@ -44,10 +45,10 @@ impl<'a> Elf64<'a> {
     pub fn header(&self) -> &Elf64Ehdr {
         &self.header
     }
-    pub fn raw_bytes(&'a self) -> &'a [u8]{
+    pub fn raw_bytes(&'a self) -> &'a [u8] {
         self.raw_bytes
     }
-    pub (crate) fn st(&'a self) -> &'a Elf64SectionTable<'a>{
+    pub(crate) fn st(&'a self) -> &'a Elf64SectionTable<'a> {
         &self.st
     }
     pub fn endianness(&self) -> u8 {
@@ -57,11 +58,7 @@ impl<'a> Elf64<'a> {
         u16::from(self.header.e_shnum()) as usize
     }
 
-
-    fn calc_shdr_offset(
-        &self,
-        idx: usize,
-    ) -> Result<Elf64Off, Error> {
+    fn calc_shdr_offset(&self, idx: usize) -> Result<Elf64Off, Error> {
         let e_shnum = self.header.e_shnum();
         if idx >= u16::from(e_shnum) as usize {
             return Err(Error::IndexOutOfBoundsError);
@@ -87,15 +84,14 @@ impl<'a> Elf64<'a> {
 
             let shdr_bytes = &self.raw_bytes[sh_offset..];
 
-            let shdr = match Elf64Shdr::from_bytes(
-                shdr_bytes,
-                self.endianness(),
-            ) {
-                Ok(value) => value,
-                Err(_) => {
-                    return Err(Error::SectionHeaderConstructionError);
-                }
-            };
+            let shdr =
+                match Elf64Shdr::from_bytes(shdr_bytes, self.endianness())
+                {
+                    Ok(value) => value,
+                    Err(_) => {
+                        return Err(Error::SectionHeaderConstructionError);
+                    }
+                };
             match sh_cell.set(shdr) {
                 Ok(_) => (),
                 Err(_) => return Err(Error::OnceCellFailureError),
@@ -114,11 +110,7 @@ impl<'a> Elf64<'a> {
         }
     }
 
-
-    fn calc_phdr_offset(
-        &self,
-        idx: usize,
-    ) -> Result<Elf64Off, Error> {
+    fn calc_phdr_offset(&self, idx: usize) -> Result<Elf64Off, Error> {
         let e_phnum = self.header.e_phnum();
         if idx >= u16::from(e_phnum) as usize {
             return Err(Error::IndexOutOfBoundsError);
@@ -141,15 +133,14 @@ impl<'a> Elf64<'a> {
 
             let phdr_bytes: &[u8] = &self.raw_bytes[ph_offset..];
 
-            let phdr = match Elf64Phdr::from_bytes(
-                phdr_bytes,
-                self.endianness(),
-            ) {
-                Ok(value) => value,
-                Err(_) => {
-                    return Err(Error::ProgramHeaderConstructionError);
-                }
-            };
+            let phdr =
+                match Elf64Phdr::from_bytes(phdr_bytes, self.endianness())
+                {
+                    Ok(value) => value,
+                    Err(_) => {
+                        return Err(Error::ProgramHeaderConstructionError);
+                    }
+                };
             match ph_cell.set(phdr) {
                 Ok(_) => (),
                 Err(_) => return Err(Error::OnceCellFailureError),
@@ -173,5 +164,4 @@ impl<'a> Elf64<'a> {
     pub fn phdr_iter(&'a self) -> Elf64PhdrIter<'a> {
         Elf64PhdrIter::new(&self)
     }
-
 }

@@ -1,8 +1,8 @@
 use crate::global::error::Error;
+use crate::raw::elf64::header::constants::*;
 use crate::raw::elf64::program::constants::*;
 use crate::raw::elf64::section::constants::*;
 use crate::raw::elf64::types::*;
-use crate::raw::elf64::header::constants::*;
 
 #[derive(Debug)]
 #[repr(C)]

@@ -1,19 +1,19 @@
 use crate::global::error::Error;
 use crate::model::elf64::relocation::relocation::*;
+use crate::model::elf64::section::relocation_iter::Elf64RelocationIter;
+use crate::model::elf64::section::symbol_iter::Elf64SymbolIter;
+use crate::model::elf64::symbol::symbol::*;
+use crate::raw::elf64::relocation::constants::*;
 use crate::raw::elf64::relocation::rel::*;
 use crate::raw::elf64::relocation::rela::*;
-use crate::raw::elf64::relocation::constants::*;
 use crate::raw::elf64::section::constants::*;
-use crate::raw::elf64::section::section_header::*; 
-use crate::model::elf64::symbol::symbol::*;
-use crate::raw::elf64::symbol::symbol_entry::*;
-use crate::raw::elf64::symbol::constants::*;
-use crate::raw::elf64::types::*;
-use crate::model::elf64::section::symbol_iter::Elf64SymbolIter;
-use crate::model::elf64::section::relocation_iter::Elf64RelocationIter;
-use crate::raw::elf64::section::symbol_entry_iter::*;
 use crate::raw::elf64::section::rel_iter::*;
 use crate::raw::elf64::section::rela_iter::*;
+use crate::raw::elf64::section::section_header::*;
+use crate::raw::elf64::section::symbol_entry_iter::*;
+use crate::raw::elf64::symbol::constants::*;
+use crate::raw::elf64::symbol::symbol_entry::*;
+use crate::raw::elf64::types::*;
 
 #[derive(Debug)]
 pub struct Elf64Section<'a> {
@@ -290,22 +290,20 @@ impl<'a> Elf64Section<'a> {
         &'a self,
         name: &[u8],
     ) -> Result<Option<Elf64Symbol<'a>>, Error> {
-
-        for idx in 0..self.entry_count(){
+        for idx in 0..self.entry_count() {
             let symbol = match self.symbol(idx) {
                 Ok(value) => value,
                 Err(_) => return Err(Error::SymbolFetchingError),
             };
 
             if name == symbol.name() {
-                let symbol = match self.symbol(idx){
+                let symbol = match self.symbol(idx) {
                     Ok(value) => value,
                     Err(_) => return Err(Error::SymbolFetchingError),
                 };
 
                 return Ok(Some(symbol));
             }
-
         }
         return Ok(None);
     }
@@ -391,7 +389,7 @@ impl<'a> Elf64Section<'a> {
             None => return Err(Error::NoAssociatedSectionError),
         };
         let relocation =
-            Elf64Relocation::new(header, symbol_table,relocation_target);
+            Elf64Relocation::new(header, symbol_table, relocation_target);
         Ok(relocation)
     }
     pub fn str(&self, idx: usize) -> Result<&'a [u8], Error> {

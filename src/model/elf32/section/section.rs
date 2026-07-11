@@ -1,18 +1,18 @@
 use crate::global::error::Error;
 use crate::model::elf32::relocation::relocation::*;
+use crate::model::elf32::section::relocation_iter::Elf32RelocationIter;
+use crate::model::elf32::section::symbol_iter::Elf32SymbolIter;
+use crate::model::elf32::symbol::symbol::*;
+use crate::raw::elf32::relocation::constants::*;
 use crate::raw::elf32::relocation::rel::*;
 use crate::raw::elf32::relocation::rela::*;
-use crate::raw::elf32::relocation::constants::*;
 use crate::raw::elf32::section::constants::*;
-use crate::raw::elf32::section::section_header::*;
-use crate::model::elf32::symbol::symbol::*;
-use crate::raw::elf32::symbol::symbol_entry::*;
-use crate::raw::elf32::types::*;
-use crate::model::elf32::section::symbol_iter::Elf32SymbolIter;
-use crate::model::elf32::section::relocation_iter::Elf32RelocationIter;
-use crate::raw::elf32::section::symbol_entry_iter::*;
 use crate::raw::elf32::section::rel_iter::*;
 use crate::raw::elf32::section::rela_iter::*;
+use crate::raw::elf32::section::section_header::*;
+use crate::raw::elf32::section::symbol_entry_iter::*;
+use crate::raw::elf32::symbol::symbol_entry::*;
+use crate::raw::elf32::types::*;
 
 #[derive(Debug)]
 pub struct Elf32Section<'a> {
@@ -286,22 +286,20 @@ impl<'a> Elf32Section<'a> {
         &'a self,
         name: &[u8],
     ) -> Result<Option<Elf32Symbol<'a>>, Error> {
-
-        for idx in 0..self.entry_count(){
+        for idx in 0..self.entry_count() {
             let symbol = match self.symbol(idx) {
                 Ok(value) => value,
                 Err(_) => return Err(Error::SymbolFetchingError),
             };
 
             if name == symbol.name() {
-                let symbol = match self.symbol(idx){
+                let symbol = match self.symbol(idx) {
                     Ok(value) => value,
                     Err(_) => return Err(Error::SymbolFetchingError),
                 };
 
                 return Ok(Some(symbol));
             }
-
         }
         return Ok(None);
     }
@@ -387,7 +385,7 @@ impl<'a> Elf32Section<'a> {
             None => return Err(Error::NoAssociatedSectionError),
         };
         let relocation =
-            Elf32Relocation::new(header, symbol_table,relocation_target);
+            Elf32Relocation::new(header, symbol_table, relocation_target);
         Ok(relocation)
     }
     pub fn str(&self, idx: usize) -> Result<&'a [u8], Error> {

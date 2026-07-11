@@ -1,6 +1,6 @@
-use crate::raw::elf64::types::*;
 use crate::global::error::Error;
 use crate::raw::elf64::relocation::constants::*;
+use crate::raw::elf64::types::*;
 
 #[derive(Debug)]
 pub struct Elf64Rel {
@@ -50,4 +50,3 @@ impl Elf64Rel {
         r_type
     }
 }
-

@@ -73,7 +73,6 @@ impl Elf64Phdr {
                 Err(_) => return Err(Error::FieldBuildingError),
             };
 
-
         let p_align =
             match Elf64Xword::from_bytes(&raw_bytes[48..56], endianness) {
                 Ok(value) => value,

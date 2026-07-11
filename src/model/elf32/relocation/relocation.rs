@@ -1,8 +1,8 @@
 use crate::global::error::Error;
-use crate::raw::elf32::relocation::rel::*;
-use crate::raw::elf32::relocation::rela::*;
 use crate::model::elf32::section::section::*;
 use crate::model::elf32::symbol::symbol::*;
+use crate::raw::elf32::relocation::rel::*;
+use crate::raw::elf32::relocation::rela::*;
 #[derive(Debug)]
 pub enum Elf32RelocationHeader {
     Rel(Elf32Rel),
@@ -18,7 +18,7 @@ pub struct Elf32Relocation<'a> {
     //and not cache them
     //than to allocate OnceCells for 10000 symbols that won't be used
     symbol_table: &'a Elf32Section<'a>,
-    //this holds a reference to the section that the relocation applies 
+    //this holds a reference to the section that the relocation applies
     //to , this way this relocation object has every info it could need
     relocation_target: &'a Elf32Section<'a>,
 }
