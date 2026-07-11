@@ -1,14 +1,30 @@
+pub use crate::raw::elf64::header::constants::*;
+pub use crate::raw::elf64::program::constants::*;
+pub use crate::raw::elf64::relocation::constants::*;
+pub use crate::raw::elf64::section::constants::*;
+pub use crate::raw::elf64::symbol::constants::*;
+pub use crate::raw::elf64::types::*;
+
+pub use crate::raw::elf64::header::header::*;
+
+pub use crate::model::elf64::section::section::*;
+pub use crate::model::elf64::section::section_table::*;
+use crate::raw::elf64::elf::section_header_iter::*;
+pub use crate::raw::elf64::section::section_header::*;
+pub use crate::raw::elf64::section::section_header_table::*;
+
+pub use crate::model::elf64::program::segment::*;
+use crate::raw::elf64::elf::segment_header_iter::*;
+pub use crate::raw::elf64::program::program_header::*;
+pub use crate::raw::elf64::program::program_header_table::*;
+
+pub use crate::raw::elf64::relocation::rel::*;
+pub use crate::raw::elf64::relocation::rela::*;
+pub use crate::raw::elf64::symbol::symbol_entry::*;
+
 use crate::global::error::Error;
-use crate::model::elf64::section::section_table::*;
-use crate::raw::elf64::elf::section_header_iter::Elf64ShdrIter;
-use crate::raw::elf64::elf::segment_header_iter::Elf64PhdrIter;
-use crate::raw::elf64::header::constants::*;
-use crate::raw::elf64::header::header::Elf64Ehdr;
-use crate::raw::elf64::program::program_header::*;
-use crate::raw::elf64::program::program_header_table::*;
-use crate::raw::elf64::section::section_header::*;
-use crate::raw::elf64::section::section_header_table::*;
-use crate::raw::elf64::types::*;
+pub use crate::model::elf64::relocation::relocation::*;
+pub use crate::model::elf64::symbol::symbol::*;
 
 pub mod section_header_iter;
 pub mod segment_header_iter;

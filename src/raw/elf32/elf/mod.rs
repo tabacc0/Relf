@@ -1,14 +1,30 @@
+pub use crate::raw::elf32::header::constants::*;
+pub use crate::raw::elf32::program::constants::*;
+pub use crate::raw::elf32::relocation::constants::*;
+pub use crate::raw::elf32::section::constants::*;
+pub use crate::raw::elf32::symbol::constants::*;
+pub use crate::raw::elf32::types::*;
+
+pub use crate::raw::elf32::header::*;
+
+pub use crate::model::elf32::section::section::*;
+pub use crate::model::elf32::section::section_table::*;
+use crate::raw::elf32::elf::section_header_iter::*;
+pub use crate::raw::elf32::section::section_header::*;
+pub use crate::raw::elf32::section::section_header_table::*;
+
+pub use crate::model::elf32::program::segment::*;
+use crate::raw::elf32::elf::segment_header_iter::*;
+pub use crate::raw::elf32::program::program_header::*;
+pub use crate::raw::elf32::program::program_header_table::*;
+
+pub use crate::raw::elf32::relocation::rel::*;
+pub use crate::raw::elf32::relocation::rela::*;
+pub use crate::raw::elf32::symbol::symbol_entry::*;
+
 use crate::global::error::Error;
-use crate::model::elf32::section::section_table::*;
-use crate::raw::elf32::elf::section_header_iter::Elf32ShdrIter;
-use crate::raw::elf32::elf::segment_header_iter::Elf32PhdrIter;
-use crate::raw::elf32::header::Elf32Ehdr;
-use crate::raw::elf32::header::constants::*;
-use crate::raw::elf32::program::program_header::*;
-use crate::raw::elf32::program::program_header_table::*;
-use crate::raw::elf32::section::section_header::*;
-use crate::raw::elf32::section::section_header_table::*;
-use crate::raw::elf32::types::*;
+pub use crate::model::elf32::relocation::relocation::*;
+pub use crate::model::elf32::symbol::symbol::*;
 
 pub mod section_header_iter;
 pub mod segment_header_iter;
