@@ -1,6 +1,6 @@
+use crate::raw::elf64::section::section_header_table::*;
 use crate::raw::elf64::symbol::constants::*;
 use crate::raw::elf64::symbol::symbol_entry::*;
-use crate::raw::elf64::section::section_header_table::*;
 
 #[derive(Debug)]
 pub struct Elf64Symbol<'a> {
@@ -13,7 +13,8 @@ impl<'a> Elf64Symbol<'a> {
         Self { name, header }
     }
     pub fn name(&self) -> &'a [u8] {
-        self.name }
+        self.name
+    }
     pub fn header(&self) -> &Elf64Sym {
         &self.header
     }
@@ -40,7 +41,6 @@ impl<'a> Elf64Symbol<'a> {
         u16::from(self.header.st_shndx()) as usize
     }
 
-
     pub fn is_abs(&self) -> bool {
         if self.header.st_shndx() != SHN_ABS {
             return false;
@@ -59,9 +59,6 @@ impl<'a> Elf64Symbol<'a> {
         }
         true
     }
-
-
-
 
     pub fn is_local(&self) -> bool {
         if self.header.st_bind() != STB_LOCAL {

@@ -94,7 +94,7 @@ impl<'a> Elf64<'a> {
             if sh_offset + file_size > self.raw_bytes().len() {
                 println!("{sh_offset}");
                 println!("{file_size}");
-                println!("{}",self.raw_bytes().len());
+                println!("{}", self.raw_bytes().len());
                 return Err(Error::BufferTooShort);
             }
             let raw_bytes: &[u8] =

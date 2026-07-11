@@ -9,7 +9,8 @@ use crate::raw::elf64::relocation::rela::*;
 use crate::raw::elf64::section::constants::*;
 use crate::raw::elf64::section::rel_iter::*;
 use crate::raw::elf64::section::rela_iter::*;
-use crate::raw::elf64::section::section_header::*; use crate::raw::elf64::section::symbol_entry_iter::*;
+use crate::raw::elf64::section::section_header::*;
+use crate::raw::elf64::section::symbol_entry_iter::*;
 use crate::raw::elf64::symbol::constants::*;
 use crate::raw::elf64::symbol::symbol_entry::*;
 use crate::raw::elf64::types::*;
@@ -103,7 +104,7 @@ impl<'a> Elf64Section<'a> {
         u64::from(self.header.sh_size())
     }
     pub fn file_size(&self) -> u64 {
-        if self.is_nobits(){
+        if self.is_nobits() {
             return 0u64;
         }
         u64::from(self.header.sh_size())

@@ -103,7 +103,7 @@ impl<'a> Elf32Section<'a> {
         u32::from(self.header.sh_size())
     }
     pub fn file_size(&self) -> u32 {
-        if self.is_nobits(){
+        if self.is_nobits() {
             return 0u32;
         }
         u32::from(self.header.sh_size())

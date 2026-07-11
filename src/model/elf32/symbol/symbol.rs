@@ -1,6 +1,6 @@
+use crate::raw::elf32::section::section_header_table::*;
 use crate::raw::elf32::symbol::constants::*;
 use crate::raw::elf32::symbol::symbol_entry::*;
-use crate::raw::elf32::section::section_header_table::*;
 
 #[derive(Debug)]
 pub struct Elf32Symbol<'a> {
@@ -41,7 +41,6 @@ impl<'a> Elf32Symbol<'a> {
         u16::from(self.header.st_shndx()) as usize
     }
 
-
     pub fn is_abs(&self) -> bool {
         if self.header.st_shndx() != SHN_ABS {
             return false;
@@ -60,7 +59,6 @@ impl<'a> Elf32Symbol<'a> {
         }
         true
     }
-
 
     pub fn is_local(&self) -> bool {
         if self.header.st_bind() != STB_LOCAL {
