@@ -11,6 +11,9 @@ use crate::raw::elf64::symbol::constants::*;
 use crate::raw::elf64::types::*;
 use crate::model::elf64::section::symbol_iter::Elf64SymbolIter;
 use crate::model::elf64::section::relocation_iter::Elf64RelocationIter;
+use crate::raw::elf64::section::symbol_entry_iter::*;
+use crate::raw::elf64::section::rel_iter::*;
+use crate::raw::elf64::section::rela_iter::*;
 
 #[derive(Debug)]
 pub struct Elf64Section<'a> {
@@ -416,6 +419,15 @@ impl<'a> Elf64Section<'a> {
         Ok(string)
     }
 
+    pub fn sym_iter(&'a self) -> Elf64SymIter<'a> {
+        Elf64SymIter::new(&self)
+    }
+    pub fn rel_iter(&'a self) -> Elf64RelIter<'a> {
+        Elf64RelIter::new(&self)
+    }
+    pub fn rela_iter(&'a self) -> Elf64RelaIter<'a> {
+        Elf64RelaIter::new(&self)
+    }
 
     pub fn symbol_iter(&'a self) -> Elf64SymbolIter<'a> {
         Elf64SymbolIter::new(&self)

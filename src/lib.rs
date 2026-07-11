@@ -1,18 +1,9 @@
 pub mod raw;
 pub mod model;
 pub mod global;
+pub use global::error;
+pub use raw::elf32::elf::Elf32;
+pub use raw::elf64::elf::Elf64;
 
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
 
-#[cfg(test)]
-mod tests {
-    use super::*;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}

@@ -1,5 +1,5 @@
-use relf::raw::elf64::elf::*;
-use relf::global::error::*;
+use relf::Elf64;
+use relf::error::*;
 fn main()  -> Result<(),Error> {
     let elf_bytes = match std::fs::read("./test") {
         Ok(f) => f,

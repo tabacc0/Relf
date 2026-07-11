@@ -1,34 +1,38 @@
 use crate::global::error::Error;
-use crate::raw::elf64::header::header::Elf64Ehdr;
-use crate::raw::elf64::header::constants::*;
-use crate::raw::elf64::program::program_header::*;
-use crate::raw::elf64::program::program_header_table::*;
-use crate::raw::elf64::section::section_header::*;
-use crate::raw::elf64::section::section_header_table::*;
-use crate::model::elf64::section::section_table::*;
-use crate::raw::elf64::types::*;
+use crate::raw::elf32::header::Elf32Ehdr;
+use crate::raw::elf32::header::constants::*;
+use crate::raw::elf32::program::program_header::*;
+use crate::raw::elf32::program::program_header_table::*;
+use crate::raw::elf32::section::section_header::*;
+use crate::raw::elf32::section::section_header_table::*;
+use crate::model::elf32::section::section_table::*;
+use crate::raw::elf32::types::*;
+use crate::raw::elf32::elf::section_header_iter::Elf32ShdrIter;
+use crate::raw::elf32::elf::segment_header_iter::Elf32PhdrIter;
 
+pub mod section_header_iter;
+pub mod segment_header_iter;
 #[derive(Debug)]
-pub struct Elf64<'a> {
+pub struct Elf32<'a> {
     raw_bytes: &'a [u8],
-    header: Elf64Ehdr,
-    sht: Elf64Sht,
-    pht: Elf64Pht,
+    header: Elf32Ehdr,
+    sht: Elf32Sht,
+    pht: Elf32Pht,
     //table of section abstraction
-    st: Elf64SectionTable<'a>,
+    st: Elf32SectionTable<'a>,
 }
 
-impl<'a> Elf64<'a> {
+impl<'a> Elf32<'a> {
     pub fn from_bytes(raw_bytes: &'a [u8]) -> Result<Self, Error> {
-        if raw_bytes.len() < ELF64EHDRSIZE {
+        if raw_bytes.len() < ELF32EHDRSIZE {
             return Err(Error::BufferTooShort); }
-        let header = match Elf64Ehdr::from_bytes(raw_bytes) {
+        let header = match Elf32Ehdr::from_bytes(raw_bytes) {
             Ok(val) => val,
             Err(_) => return Err(Error::HeaderParsingError),
         };
-        let sht = Elf64Sht::new(header.e_shnum());
-        let pht = Elf64Pht::new(header.e_phnum());
-        let st = Elf64SectionTable::new(header.e_shnum());
+        let sht = Elf32Sht::new(header.e_shnum());
+        let pht = Elf32Pht::new(header.e_phnum());
+        let st = Elf32SectionTable::new(header.e_shnum());
         Ok(Self {
             raw_bytes,
             header,
@@ -37,13 +41,13 @@ impl<'a> Elf64<'a> {
             st,
         })
     }
-    pub fn header(&self) -> &Elf64Ehdr {
-        &self.header
-    }
-    pub fn raw_bytes(&'a self) -> &'a [u8]{
+    pub fn raw_bytes(&'a self) -> &'a [u8] {
         self.raw_bytes
     }
-    pub (crate) fn st(&'a self) -> &'a Elf64SectionTable<'a>{
+    pub fn header(&self) -> &Elf32Ehdr {
+        &self.header
+    }
+    pub (crate) fn st(&'a self) -> &'a Elf32SectionTable<'a> {
         &self.st
     }
     pub fn endianness(&self) -> u8 {
@@ -57,7 +61,7 @@ impl<'a> Elf64<'a> {
     fn calc_shdr_offset(
         &self,
         idx: usize,
-    ) -> Result<Elf64Off, Error> {
+    ) -> Result<Elf32Off, Error> {
         let e_shnum = self.header.e_shnum();
         if idx >= u16::from(e_shnum) as usize {
             return Err(Error::IndexOutOfBoundsError);
@@ -67,10 +71,10 @@ impl<'a> Elf64<'a> {
         //lenght of an entry
         let sh_entsize = self.header.e_shentsize().value as usize;
         //offset + product
-        Ok(Elf64Off::from((sht_offset + idx * sh_entsize) as u64))
+        Ok(Elf32Off::from((sht_offset + idx * sh_entsize) as u32))
     }
 
-    pub fn shdr(&self, idx: usize) -> Result<&Elf64Shdr, Error> {
+    pub fn shdr(&self, idx: usize) -> Result<&Elf32Shdr, Error> {
         let sh_cell = match self.sht.get_sh(idx) {
             Ok(value) => value,
             Err(_) => return Err(Error::SectionHeaderRetrievalError),
@@ -83,7 +87,7 @@ impl<'a> Elf64<'a> {
 
             let shdr_bytes = &self.raw_bytes[sh_offset..];
 
-            let shdr = match Elf64Shdr::from_bytes(
+            let shdr = match Elf32Shdr::from_bytes(
                 shdr_bytes,
                 self.endianness(),
             ) {
@@ -114,17 +118,17 @@ impl<'a> Elf64<'a> {
     fn calc_phdr_offset(
         &self,
         idx: usize,
-    ) -> Result<Elf64Off, Error> {
+    ) -> Result<Elf32Off, Error> {
         let e_phnum = self.header.e_phnum();
         if idx >= u16::from(e_phnum) as usize {
             return Err(Error::IndexOutOfBoundsError);
         }
         let ph_offset = self.header.e_phoff().value as usize;
         let ph_entsize = self.header.e_phentsize().value as usize;
-        Ok(Elf64Off::from((ph_offset + idx * ph_entsize) as u64))
+        Ok(Elf32Off::from((ph_offset + idx * ph_entsize) as u32))
     }
 
-    pub fn phdr(&self, idx: usize) -> Result<&Elf64Phdr, Error> {
+    pub fn phdr(&self, idx: usize) -> Result<&Elf32Phdr, Error> {
         let ph_cell = match self.pht.get_ph(idx) {
             Ok(value) => value,
             Err(_) => return Err(Error::ProgramHeaderRetrievalError),
@@ -137,7 +141,7 @@ impl<'a> Elf64<'a> {
 
             let phdr_bytes: &[u8] = &self.raw_bytes[ph_offset..];
 
-            let phdr = match Elf64Phdr::from_bytes(
+            let phdr = match Elf32Phdr::from_bytes(
                 phdr_bytes,
                 self.endianness(),
             ) {
@@ -162,6 +166,12 @@ impl<'a> Elf64<'a> {
             };
             return Ok(ph);
         }
+    }
+    pub fn shdr_iter(&'a self) -> Elf32ShdrIter<'a> {
+        Elf32ShdrIter::new(&self)
+    }
+    pub fn phdr_iter(&'a self) -> Elf32PhdrIter<'a> {
+        Elf32PhdrIter::new(&self)
     }
 
 }
